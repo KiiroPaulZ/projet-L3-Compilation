@@ -510,7 +510,7 @@ static const yytype_uint16 yyrline[] =
      223,   227,   230,   236,   237,   238,   239,   243,   244,   248,
      252,   253,   254,   255,   256,   260,   261,   262,   263,   266,
      267,   278,   279,   283,   284,   288,   289,   293,   294,   298,
-     299,   303,   304,   308,   317,   329,   330,   334
+     299,   303,   304,   308,   316,   327,   328,   332
 };
 #endif
 
@@ -1777,37 +1777,37 @@ yyreduce:
 
   case 60:
 #line 252 "structfe.y"
-    {(yyval.node) = (yyvsp[(1) - (1)].node);}
+    {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node_list));}
     break;
 
   case 61:
 #line 253 "structfe.y"
-    {(yyval.node) = (yyvsp[(1) - (1)].node);}
+    {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node));}
     break;
 
   case 62:
 #line 254 "structfe.y"
-    {(yyval.node) = (yyvsp[(1) - (1)].node);}
+    {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node));}
     break;
 
   case 63:
 #line 255 "structfe.y"
-    {(yyval.node) = (yyvsp[(1) - (1)].node);}
+    {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node));}
     break;
 
   case 64:
 #line 256 "structfe.y"
-    {(yyval.node) = (yyvsp[(1) - (1)].node);}
+    {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node));}
     break;
 
   case 66:
 #line 261 "structfe.y"
-    {(yyval.node) = create_node("main_2", (yyvsp[(2) - (3)].node_list));}
+    {(yyval.node_list) = (yyvsp[(2) - (3)].node_list);}
     break;
 
   case 68:
 #line 263 "structfe.y"
-    {(yyval.node) = create_node("main_3", (yyvsp[(3) - (4)].node_list));}
+    {(yyval.node_list) = (yyvsp[(3) - (4)].node_list);}
     break;
 
   case 69:
@@ -1840,12 +1840,12 @@ yyreduce:
 
   case 73:
 #line 283 "structfe.y"
-    {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node));}
+    {(yyval.node_list) = (yyvsp[(1) - (1)].node_list);}
     break;
 
   case 74:
 #line 284 "structfe.y"
-    { (yyval.node_list) = pushNode((yyvsp[(1) - (2)].node_list), (yyvsp[(2) - (2)].node));}
+    { (yyval.node_list) = pushNode((yyvsp[(1) - (2)].node_list), (yyvsp[(2) - (2)].node_list)->first);}
     break;
 
   case 76:
@@ -1863,7 +1863,6 @@ yyreduce:
     {
                 nodes_list_t * arbre = NULL;
                 if((yyvsp[(1) - (1)].node) != NULL){
-                        printf("ext 1\n");
                         (yyval.node) = create_node("prog", mergeNodes(1, (yyvsp[(1) - (1)].node))); 
                         arbre = mergeNodes(1, (yyvsp[(1) - (1)].node));
                         print_tree(arbre, "");
@@ -1872,11 +1871,10 @@ yyreduce:
     break;
 
   case 84:
-#line 317 "structfe.y"
+#line 316 "structfe.y"
     {
                 nodes_list_t * arbre = NULL;
                 if((yyvsp[(2) - (2)].node) != NULL){
-                        printf("ext 2\n");
                         (yyval.node) = create_node("prog", mergeNodes(1, (yyvsp[(2) - (2)].node)));
                         arbre = mergeNodes(1, (yyvsp[(2) - (2)].node));
                         print_tree(arbre, "");
@@ -1885,23 +1883,23 @@ yyreduce:
     break;
 
   case 85:
-#line 329 "structfe.y"
+#line 327 "structfe.y"
     { (yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 86:
-#line 330 "structfe.y"
+#line 328 "structfe.y"
     {(yyval.node) = NULL;}
     break;
 
   case 87:
-#line 334 "structfe.y"
-    { (yyval.node) = (yyvsp[(3) - (3)].node); }
+#line 332 "structfe.y"
+    { (yyval.node) = create_node((yyvsp[(2) - (3)].nom),(yyvsp[(3) - (3)].node_list)); }
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1905 "y.tab.c"
+#line 1903 "y.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2115,7 +2113,7 @@ yyreturn:
 }
 
 
-#line 337 "structfe.y"
+#line 335 "structfe.y"
 
         int yyerror(char *s){ // fonction pour détecter une erreur
                 fprintf(stderr, "%s\n", s);

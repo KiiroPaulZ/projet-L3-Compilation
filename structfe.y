@@ -36,11 +36,11 @@
 %type<node> expression primary_expression postfix_expression unary_expression program 
 %type<node> multiplicative_expression additive_expression relational_expression equality_expression
 %type<node> logical_and_expression logical_or_expression declaration struct_specifier
-%type<node> struct_declaration parameter_declaration statement compound_statement
+%type<node> struct_declaration parameter_declaration 
 %type<node> ACCOO ACCOF expression_statement selection_statement iteration_statement jump_statement external_declaration function_definition
 %type<type> declaration_specifiers type_specifier 
 %type<nom> declarator direct_declarator unary_operator
-%type<node_list> argument_expression_list struct_declaration_list parameter_list declaration_list statement_list 
+%type<node_list> argument_expression_list struct_declaration_list parameter_list declaration_list statement_list compound_statement statement 
 
 %token<nom> IDENTIFIER 
 %token<val> CONSTANT SIZEOF
@@ -249,18 +249,18 @@ parameter_declaration
         ;
 
 statement
-        : compound_statement {$$ = $1;}
-        | expression_statement {$$ = $1;}
-        | selection_statement {$$ = $1;}
-        | iteration_statement {$$ = $1;}
-        | jump_statement {$$ = $1;}
+        : compound_statement {$$ = mergeNodes(1, $1);}
+        | expression_statement {$$ = mergeNodes(1, $1);}
+        | selection_statement {$$ = mergeNodes(1, $1);}
+        | iteration_statement {$$ = mergeNodes(1, $1);}
+        | jump_statement {$$ = mergeNodes(1, $1);}
         ;
 
 compound_statement
         : ACCOO ACCOF
-        | ACCOO statement_list ACCOF {$$ = create_node("main_2", $2);}
+        | ACCOO statement_list ACCOF {$$ = $2;}
         | ACCOO declaration_list ACCOF
-        | ACCOO declaration_list statement_list ACCOF {$$ = create_node("main_3", $3);}
+        | ACCOO declaration_list statement_list ACCOF {$$ = $3;}
         ;
 
 ACCOO : '{' {table_t *table = nouvelle_table(); push(table);}
@@ -280,8 +280,8 @@ declaration_list
         ;
 
 statement_list
-        : statement {$$ = mergeNodes(1, $1);}
-        | statement_list statement { $$ = pushNode($1, $2);}
+        : statement {$$ = $1;}
+        | statement_list statement { $$ = pushNode($1, $2->first);}
         ;
 
 expression_statement
@@ -303,12 +303,11 @@ jump_statement
         : RETURN ';' 
         | RETURN expression ';' {$$ = $2; /*$$ = create_node("jump_statement", mergeNodes(3,create_node("return", NULL), $2, create_node(";", NULL)));*/}
         ;
-        
+
 program
         : external_declaration {
                 nodes_list_t * arbre = NULL;
                 if($1 != NULL){
-                        printf("ext 1\n");
                         $$ = create_node("prog", mergeNodes(1, $1)); 
                         arbre = mergeNodes(1, $1);
                         print_tree(arbre, "");
@@ -317,7 +316,6 @@ program
         | program external_declaration {
                 nodes_list_t * arbre = NULL;
                 if($2 != NULL){
-                        printf("ext 2\n");
                         $$ = create_node("prog", mergeNodes(1, $2));
                         arbre = mergeNodes(1, $2);
                         print_tree(arbre, "");
@@ -331,7 +329,7 @@ external_declaration
         ;
 
 function_definition
-        : declaration_specifiers declarator compound_statement { $$ = $3; }
+        : declaration_specifiers declarator compound_statement { $$ = create_node($2,$3); }
         ;
 
 %%
