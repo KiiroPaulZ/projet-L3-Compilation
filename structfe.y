@@ -276,7 +276,7 @@ ACCOF : '}' {
 
 declaration_list
         : declaration {}
-        | declaration_list declaration {}
+        | declaration_list declaration {;}
         ;
 
 statement_list
