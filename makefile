@@ -1,0 +1,12 @@
+
+output: lex.yy.c y.tab.c
+	gcc lex.yy.c y.tab.c -ll -o output
+
+lex.yy.c: ANSI-C.l
+	flex ANSI-C.l
+
+y.tab.c: structfe.y
+	yacc -d structfe.y
+
+clean:
+	rm lex.yy.c y.tab.c output

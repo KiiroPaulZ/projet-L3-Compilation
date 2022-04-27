@@ -1,0 +1,165 @@
+program
+     |___> external_declaration 
+          |___> function_definition
+               |___> declaration_specifier 
+                    |___> type_specifier
+                         |___> int 
+
+               |___> declarator 
+                    |___> direct_declarator
+                         |___> main 
+                         |___> ( 
+                         |___> ) 
+
+               |___> compound_statement 
+                    |___> {
+
+                    |___> declaration_list
+                         |___> declaration_list 
+                              |___> declaration_list
+                                   |___> declaration
+                                        |___> declaration_specifier
+                                             |___> type_specifier 
+                                                  |___> int
+
+
+                                        |___> declarator
+                                             |___> a 
+
+                                        |___> ;
+
+
+                              |___> declaration
+                                   |___> declaration_specifier 
+                                        |___> type_specifier
+                                             |___> int 
+
+                                   |___> declarator 
+                                        |___> b
+
+                                   |___> ; 
+
+                         |___> declaration 
+                              |___> declaration_specifier
+                                   |___> type_specifier 
+                                        |___> int
+
+
+                              |___> declarator
+                                   |___> * 
+                                   |___> k 
+
+                              |___> ;
+
+
+                    |___> statement_list
+                         |___> statement_list 
+                              |___> statement_list
+                                   |___> statement_list 
+                                        |___> expression_statement
+                                             |___> expression 
+                                                  |___> unary_expression
+                                                       |___> postfix_expression 
+                                                            |___> a
+
+
+                                                  |___> =
+
+                                                  |___> expression
+                                                       |___> logical_or_expression 
+                                                            |___> logical_and_expression
+                                                                 |___> equality_expression 
+                                                                      |___> relational_expression
+                                                                           |___> additive_expression 
+                                                                                |___> multiplicative_expression
+                                                                                     |___> unary_expression 
+                                                                                          |___> postfix_expression
+                                                                                               |___> 0 
+
+
+
+
+
+                                             |___> ; 
+
+                                   |___> expression_statement 
+                                        |___> expression
+                                             |___> unary_expression 
+                                                  |___> postfix_expression
+                                                       |___> b 
+
+                                             |___> = 
+                                             |___> expression 
+                                                  |___> logical_or_expression
+                                                       |___> logical_and_expression 
+                                                            |___> equality_expression
+                                                                 |___> relational_expression 
+                                                                      |___> additive_expression
+                                                                           |___> multiplicative_expression 
+                                                                                |___> unary_expression
+                                                                                     |___> postfix_expression 
+                                                                                          |___> 1
+
+
+
+
+
+
+                                        |___> ;
+
+
+                              |___> expression_statement
+                                   |___> expression 
+                                        |___> unary_expression
+                                             |___> postfix_expression 
+                                                  |___> k
+
+
+                                        |___> =
+
+                                        |___> expression
+                                             |___> logical_or_expression 
+                                                  |___> logical_and_expression
+                                                       |___> equality_expression 
+                                                            |___> relational_expression
+                                                                 |___> additive_expression 
+                                                                      |___> multiplicative_expression
+                                                                           |___> unary_expression 
+                                                                                |___> &
+
+                                                                                |___> unary_expression
+                                                                                     |___> postfix_expression 
+                                                                                          |___> a
+
+
+
+
+
+
+                                   |___> ; 
+
+                         |___> jump_statement 
+                              |___> return
+
+                              |___> expression
+                                   |___> logical_or_expression 
+                                        |___> logical_and_expression
+                                             |___> equality_expression 
+                                                  |___> relational_expression
+                                                       |___> additive_expression 
+                                                            |___> multiplicative_expression
+                                                                 |___> unary_expression 
+                                                                      |___> postfix_expression
+                                                                           |___> 0 
+
+
+
+
+
+                              |___> ;
+
+
+                    |___> }
+
+
+[{ declarator -> NULL }]

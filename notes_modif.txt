@@ -1,0 +1,4 @@
+07/04 => modification des accollades pour integrer la TS comme le td7
+      => modification du début du program pour initialiser une premiere table
+      => On s'est rendu compte que le parcours se fait en analyse descendente, 
+            on a ajouté un flag à la structure symbole pour vérifier s'il s'agit d'un pointeur.
