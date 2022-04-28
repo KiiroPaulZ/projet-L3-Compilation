@@ -12,7 +12,8 @@
         int yylineno;
         int yyerror(char *);
         table_t *pile;
-        int pos;
+        //param_list_stack_t * param_list_stack;
+        //int pos;
         void print_table();
         void print_node(node_t * n);
         void print_tree(nodes_list_t * n, char * space);
@@ -31,16 +32,18 @@
     //liste_t *liste; // liste de parametres
     node_t * node;
     nodes_list_t * node_list;
+    symbole_t * symb;
 }
 
 %type<node> expression primary_expression postfix_expression unary_expression program 
 %type<node> multiplicative_expression additive_expression relational_expression equality_expression
 %type<node> logical_and_expression logical_or_expression declaration struct_specifier
-%type<node> struct_declaration parameter_declaration 
+%type<node> struct_declaration
 %type<node> ACCOO ACCOF expression_statement selection_statement iteration_statement jump_statement external_declaration function_definition
 %type<type> declaration_specifiers type_specifier 
 %type<nom> declarator direct_declarator unary_operator
-%type<node_list> argument_expression_list struct_declaration_list parameter_list declaration_list statement_list compound_statement statement 
+%type<node_list> argument_expression_list struct_declaration_list declaration_list statement_list compound_statement statement
+%type<symb> parameter_list parameter_declaration
 
 %token<nom> IDENTIFIER 
 %token<val> CONSTANT SIZEOF
@@ -55,15 +58,15 @@
 %nonassoc ELSE_PRIORITY
 %nonassoc ELSE
 
-%start program
+%start program_start
 %%
 
 primary_expression
         : IDENTIFIER  {
-                        symbole_t *s = NULL;
+                        symbole_t * s = NULL;
                         node_t * n = NULL;
                         table_t * stack_head = pile;
-                        s = rechercher(stack_head->symbole, $1);
+                        s = rechercher_global(stack_head, $1);
                         n = create_node($1, NULL);
                         n->symb = s;
                         $$ = n;
@@ -73,11 +76,33 @@ primary_expression
         ;
 
 postfix_expression
-        : primary_expression { $$ = $1; /*$$ = create_node("postfix_expression", mergeNodes(1,$1));*/}
-        | postfix_expression '(' ')' { $$ = $1; }
-        | postfix_expression '(' argument_expression_list ')'
-        | postfix_expression '.' IDENTIFIER { node_t * n = NULL; n = create_node(".", mergeNodes(2, $1, create_node($3, NULL))); /*n->type = INT_;*/ $$ = n; }
-        | postfix_expression PTR_OP IDENTIFIER { node_t * n = NULL; n = create_node("->", mergeNodes(2, $1, create_node($3, NULL))); /*n->type = INT_;*/ $$ = n; }
+        : primary_expression { $$ = $1; }
+        | postfix_expression '(' ')' { 
+                if($1->symb != NULL && $1->symb->ts == FONCTION_){
+                        $$ = $1;
+                } else {
+                        printf("%sLigne %d, ceci n'est pas une fonction anonyme!\n",ERROR, yylineno);
+                        exit(1);
+                }
+        }
+        | postfix_expression '(' argument_expression_list ')' {
+                if($1->symb != NULL && $1->symb->ts == FONCTION_){
+                        $$ = $1;
+                } else {
+                        printf("%sLigne %d, ceci n'est pas une fonction et/ou lui manque des paramètres!\n",ERROR, yylineno);
+                        exit(1);
+                }
+        }
+        | postfix_expression '.' IDENTIFIER { 
+                                                node_t * n = NULL; 
+                                                n = create_node(".", mergeNodes(2, $1, create_node($3, NULL))); 
+                                                $$ = n;
+                                            }
+        | postfix_expression PTR_OP IDENTIFIER { 
+                                                node_t * n = NULL; 
+                                                n = create_node("->", mergeNodes(2, $1, create_node($3, NULL))); 
+                                                $$ = n; 
+                                               }
         ;
 
 argument_expression_list
@@ -116,53 +141,39 @@ additive_expression
 
 relational_expression
         : additive_expression {$$ = $1;}
-        | relational_expression '<' additive_expression
-        | relational_expression '>' additive_expression
-        | relational_expression LE_OP additive_expression
-        | relational_expression GE_OP additive_expression
+        | relational_expression '<' additive_expression {$$ = create_node("<", mergeNodes(2,$1,$3));}
+        | relational_expression '>' additive_expression {$$ = create_node(">", mergeNodes(2,$1,$3));}
+        | relational_expression LE_OP additive_expression {$$ = create_node("<=", mergeNodes(2,$1,$3));}
+        | relational_expression GE_OP additive_expression {$$ = create_node(">=", mergeNodes(2,$1,$3));}
         ;
 
 equality_expression
         : relational_expression {$$ = $1;}
-        | equality_expression EQ_OP relational_expression
-        | equality_expression NE_OP relational_expression
+        | equality_expression EQ_OP relational_expression {$$ = create_node("==", mergeNodes(2,$1,$3));}
+        | equality_expression NE_OP relational_expression {$$ = create_node("!=", mergeNodes(2,$1,$3));}
         ;
 
 logical_and_expression
         : equality_expression {$$ = $1;}
-        | logical_and_expression AND_OP equality_expression
+        | logical_and_expression AND_OP equality_expression {$$ = create_node("&&", mergeNodes(2,$1,$3));}
         ;
 
 logical_or_expression
         : logical_and_expression {$$ = $1;}
-        | logical_or_expression OR_OP logical_and_expression
+        | logical_or_expression OR_OP logical_and_expression {$$ = create_node("||", mergeNodes(2,$1,$3));}
         ;
 
 expression
         : logical_or_expression {$$ = $1;}
-        | unary_expression '=' expression {     
-                                                $$ = create_node("=", mergeNodes(2, $1, $3));
-                                                /*table_t * stack_head = pile;
-                                                symbole_t * var = rechercher(stack_head->symbole, $1);
-                                                printf("", )
-                                                //printf("%s %u et %s %u\n",$1->name, $1->type, $3->name, $3->type);
-                                                //printf("%s est ptr ? %d\n", $1->name, rechercher($1,table).isPtr)
-                                                si expression n'a pas d'enfant
-                                                        symbole_t * var2 = rechercher(stack_head->symbole, $1->name);
-                                                        ....
-                                                sinon
-                                                        retrieveTypeOfNoeud*/
-                                                /*if(var->type != $3->type || var->isPtr != ...){
-                                                        printf("%sLigne %d, vous ne pouvez pas affecter un type %u à une variable de type %u.\n", ERROR, yylineno, $3->type, $1->type);
-                                                } */
-                                                /*$$ = create_node("expression", mergeNodes(3,$1,create_node("=", NULL),$3));*/
+        | unary_expression '=' expression {
+                $$ = create_node("=", mergeNodes(2,$1,$3));
         }
         ;
 
 declaration
         : declaration_specifiers declarator ';' {
                                                         if($1 == VOID_){
-                                                                printf("%sLigne %d, vous ne pouvez pas déclarer une variable de type void.\n",ERROR, yylineno);
+                                                                printf("%sLigne %d, vous ne pouvez pas déclarer une variable de type void.\n", ERROR, yylineno);
                                                                 exit(1);
                                                         }
                                                         symbole_t *s = NULL;
@@ -183,23 +194,45 @@ declaration
                                                                 exit(1);
                                                         } else {
                                                                 if(s != NULL)
-                                                                printf("%sLigne %d, la variable '%s' en masque une autre\n", WARNING, yylineno, $2);
-                                                                table_t * t = *top();
+                                                                        printf("%sLigne %d, la variable '%s' en masque une autre\n", WARNING, yylineno, $2);
+                                                                table_t * t = *top(); // Le symbole n'existe pas, il faut le définir
                                                                 s = ajouter(&(t->symbole), $2);
-                                                                s->type = $1;
+                                                                if($1 == EXTERN_INT_ || $1 == EXTERN_VOID_ || $1 == EXTERN_STRUCT_){ // Ici on gere les extern
+                                                                        s->ts = FONCTION_;
+                                                                        if(param_list_stack != NULL){ // S'il a des paramètres, on les sauvegardes
+                                                                                s->param_list = copyParamList(param_list_stack);
+                                                                                displayParam(s->param_list);
+                                                                                clean_param_list_stack();
+                                                                        }
+                                                                        switch($1){
+                                                                                case EXTERN_INT_: s->type = INT_; break;
+                                                                                case EXTERN_VOID_ : s->type = VOID_; break;
+                                                                                default : s->type = STRUCT_;
+                                                                        }
+                                                                } else {
+                                                                        s->type = $1;
+                                                                        s->ts = VARIABLE_;
+                                                                }
                                                                 s->taille = sizeof($1);
                                                                 s->position = pos;
                                                                 s->suivant = NULL;
                                                                 pos += s->taille;
                                                         }
-                                                        print_table();
+                                                        //print_table();
+                                                        print_complete_table();
                                                 }
         | struct_specifier ';'
         ;
 
 declaration_specifiers
-        : EXTERN type_specifier {$$ = $2;}
-        | type_specifier {$$ = $1; }
+        : EXTERN type_specifier {       
+                                        switch($2){
+                                                case INT_: $$ = EXTERN_INT_; break;
+                                                case VOID_: $$ = EXTERN_VOID_; break;
+                                                default: $$ = EXTERN_STRUCT_;
+                                        }
+                                }
+        | type_specifier {$$ = $1;}
         ;
 
 type_specifier
@@ -224,28 +257,48 @@ struct_declaration
         ;
 
 declarator
-        : '*' direct_declarator {
-                                        sprintf($$, "%s%s", "*", $2);
-                                }
-        | direct_declarator {
-                                $$ = $1;
-                            }
+        : '*' direct_declarator { 
+                char p[strlen($2)+2]; 
+                sprintf(p, "*%s", $2); 
+                //printf("p : %s\n",p);
+                $$ = strdup(p);
+        }
+        | direct_declarator { $$ = $1; }
         ;
 
 direct_declarator
         : IDENTIFIER {$$ = $1;}
         | '(' declarator ')' {$$ = $2;}
-        | direct_declarator '(' parameter_list ')' 
+        | direct_declarator '(' parameter_list ')' {
+                $$ = $1;
+        }
         | direct_declarator '(' ')' {$$ = $1;}
         ;
 
 parameter_list
-        : parameter_declaration
-        | parameter_list ',' parameter_declaration
+        : parameter_declaration {        
+                addParam(&param_list_stack, $1);
+        }
+        | parameter_list ',' parameter_declaration {
+                addParam(&param_list_stack, $3);
+        }
         ;
 
 parameter_declaration
-        : declaration_specifiers declarator
+        : declaration_specifiers declarator {
+                char * nom = $2; // Je sauvegarde les informations
+                symbole_t * s;
+                s = malloc(sizeof(symbole_t));
+                s->type = $1;
+                if(nom[0] == '*'){
+                        s->isPtr = true;
+                        nom++; // on retire le premier caractere
+                } else {
+                        s->isPtr = false;
+                }
+                s->nom = nom;
+                $$ = s;
+        }
         ;
 
 statement
@@ -265,13 +318,13 @@ compound_statement
 
 ACCOO : '{' {table_t *table = nouvelle_table(); push(table);}
 ACCOF : '}' {
-                table_t *table = pop(); 
+                /*table_t *table = pop(); 
                 detruire_table(&table);
                 if((*top()) != NULL){ // autrement dit si la pile est vide    
-                    print_table();
+                    //print_table();
                 } else {
                     printf("[]\n");
-                }
+                }*/
             }
 
 declaration_list
@@ -304,6 +357,16 @@ jump_statement
         | RETURN expression ';' {$$ = $2; /*$$ = create_node("jump_statement", mergeNodes(3,create_node("return", NULL), $2, create_node(";", NULL)));*/}
         ;
 
+program_start: program {
+                                table_t *table = pop(); 
+                                detruire_table(&table);
+                                if((*top()) != NULL){ // autrement dit si la pile est vide    
+                                        //print_table();
+                                } else {
+                                        printf("[]\n");
+                                }
+                        };
+
 program
         : external_declaration {
                 nodes_list_t * arbre = NULL;
@@ -325,11 +388,49 @@ program
 
 external_declaration
         : function_definition { $$ = $1;}
-        | declaration {$$ = NULL;}
+        | declaration { $$ = NULL;}
         ;
 
 function_definition
-        : declaration_specifiers declarator compound_statement { $$ = create_node($2,$3); }
+        : declaration_specifiers declarator compound_statement { 
+                                                                        symbole_t *s = NULL;
+                                                                        table_t * stack_head = pile;
+                                                                        if(stack_head == NULL){
+                                                                                table_t *table = nouvelle_table(); push(table); // Si la pile est vide on l'initialise
+                                                                        }
+                                                                        while(stack_head != NULL){
+                                                                                if(stack_head->symbole != NULL){
+                                                                                s = rechercher(stack_head->symbole, $2);
+                                                                                if(s != NULL)
+                                                                                        break;
+                                                                                }
+                                                                                stack_head = stack_head->preced;
+                                                                        }
+                                                                        if(s == NULL) {
+                                                                                if(s != NULL)
+                                                                                        printf("%sLigne %d, la fonction '%s' en masque une autre\n", WARNING, yylineno, $2);
+                                                                                table_t * t = *top();
+                                                                                s = ajouter(&(t->symbole), $2);
+                                                                                s->type = $1;
+                                                                                s->ts = FONCTION_;
+                                                                                s->taille = sizeof($1);
+                                                                                s->position = pos;
+                                                                                s->suivant = NULL;
+                                                                                pos += s->taille;
+                                                                                if(param_list_stack != NULL){ // S'il a des paramètres, on les sauvegardes
+                                                                                        s->param_list = copyParamList(param_list_stack);
+                                                                                        displayParam(s->param_list);
+                                                                                        clean_param_list_stack();
+                                                                                }
+                                                                        }
+                                                                        //print_table();
+                                                                        print_complete_table();
+                                                                        if(($2)[0] == '*')
+                                                                                $2++;
+                                                                        node_t * n  = create_node($2,$3);
+                                                                        n->symb = s;
+                                                                        $$ = n; 
+                                                               }
         ;
 
 %%
@@ -363,15 +464,29 @@ function_definition
                 if(list != NULL){
                         symbole_t *last = list;
                         while(strcmp(last->nom, nom) != 0){
-                        if (last->suivant == NULL){
-                                return NULL;
-                        }
-                        last = last->suivant;           
+                                if (last->suivant == NULL){
+                                        return NULL;
+                                }
+                                last = last->suivant;           
                         }
                         return last;
                 }else{
                         return NULL;
                 }
+        }
+
+        symbole_t * rechercher_global(table_t * t, char * nom){
+                if(t != NULL){
+                        table_t * table = t;
+                        while(table != NULL){
+                                symbole_t * s = NULL;
+                                s = rechercher(table->symbole, nom);
+                                if(s != NULL)
+                                        return s;
+                                table = table->preced;
+                        }
+                }
+                return NULL;
         }
 
         symbole_t * ajouter(symbole_t ** list_s, char *nom){
@@ -422,6 +537,34 @@ function_definition
                         }
                 }
                 printf("]\n");
+                free(stack);
+        }
+
+        void print_complete_table(){
+                table_t * stack = malloc(sizeof (table_t));
+                assert(stack != NULL);
+
+                if(*top() != NULL){
+                        stack->symbole = (*top())->symbole;
+                        stack->preced = (*top())->preced;
+                }
+                printf("================================\n");
+                while(stack != NULL){
+                        printf("{\n");
+                        while(stack->symbole != NULL){
+                                printf("        NAME: %-22s | isPTR: %d | type: %2d | TAILLE: %3d | POSITION: %3d | TS NATURE: %2d\n", stack->symbole->nom, stack->symbole->isPtr, stack->symbole->type, stack->symbole->taille, stack->symbole->position, stack->symbole->ts);
+                                stack->symbole = stack->symbole->suivant;
+                        }
+                        printf("}\n");
+
+                        if(stack->preced != NULL){
+                                stack->symbole = stack->preced->symbole;
+                                stack->preced = stack->preced->preced;
+                        } else {
+                                break;
+                        }
+                }
+                printf("\n================================\n");
                 free(stack);
         }
 
@@ -534,6 +677,56 @@ function_definition
                 current->next = mergeNodes(1, n);
                 return copy;
         };
+
+        void addParam(param_list_t ** stack, symbole_t * s){
+                param_list_t * p = malloc(sizeof(param_list_t));
+                p->symbole = s;
+
+                if(*stack == NULL){
+                        *stack = p;
+                } else {
+                        while((*stack)->suivant != NULL){
+                                *stack = (*stack)->suivant;
+                        }
+                        (*stack)->suivant = p;
+                }
+        }
+
+        void clean_param_list_stack(){
+                param_list_t ** stack = &param_list_stack;
+                while(*stack != NULL){
+                        param_list_t * current = *stack;
+                        /*if((*stack)->symbole->nom != NULL)
+                                free((*stack)->symbole->nom);*/
+                        if((*stack)->symbole != NULL)
+                                free((*stack)->symbole);
+                        *stack = (*stack)->suivant;
+                        if(current != NULL)
+                                free(current);
+                }
+                *stack = NULL;
+        }
+
+        param_list_t * copyParamList(param_list_t * stack){
+                if(stack == NULL){
+                        return NULL;
+                }
+                param_list_t * p = malloc(sizeof(param_list_t));
+                p->symbole = malloc(sizeof(symbole_t));
+                p->symbole->type = stack->symbole->type;
+                p->symbole->isPtr = stack->symbole->isPtr;
+                p->symbole->nom = strdup(stack->symbole->nom);
+                p->suivant = copyParamList(stack->suivant);
+                return p;
+        }
+
+        void displayParam(param_list_t * p){
+                printf("Liste courante des paramètres:\n");
+                while(p != NULL){
+                        printf("+ %s, est de type %d et isPtr vaut %d\n",p->symbole->nom, p->symbole->type ,p->symbole->isPtr);
+                        p = p->suivant;
+                }
+        }
 
         int main(){
                 while(1){

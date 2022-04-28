@@ -73,6 +73,7 @@ typedef struct node_ {
         char * name;
         node_type type;
         struct nodes_list_ * children;
+        ts_type * ts_t;
         symbole_t * symb;
 } node_t;
 

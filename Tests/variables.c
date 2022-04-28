@@ -4,13 +4,13 @@
 /* /* */
 /* 
 */
-extern int camarche();
+/*extern int camarche();
 
 int foo(){
   int i;
   i = -1;
-  return i;
-}
+  return a;
+}*/
 
 int main() {
   int a;
