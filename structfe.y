@@ -85,9 +85,10 @@ postfix_expression
         }
         | postfix_expression '(' argument_expression_list ')' {
                 // S'il s'agit d'une fonction, qu'il a un symbole associé et que la liste des parametres correspond à la liste de parametres définie initialement
-                displayParam(param_list_stack);
-                displayParam($1->symb->param_list);
-                printf("1: %d, 2: %d\n", paramLength(param_list_stack), paramLength($1->symb->param_list));
+                //displayParam(param_list_stack);
+                //displayParam($1->symb->param_list);
+                //printf("%d <--\n", paramLength(param_list_stack));
+                //printf("1: %d, 2: %d\n", paramLength(param_list_stack), paramLength($1->symb->param_list));
                 if($1->symb != NULL && $1->symb->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength($1->symb->param_list))){
                         clean_param_list_stack(); // Après chaque utilisation il faut penser à clean la pile de parametre globale
                         //print_node($1);
@@ -200,8 +201,8 @@ expression
 
 declaration
         : declaration_specifiers declarator ';' {       
-                                                        printf("la, je declare %s\n", $2);
-                                                        print_table();
+                                                        
+                                                        //print_table();
                                                         //print_complete_table();
                                                         if($1 == VOID_){
                                                                 printf("%sLigne %d, vous ne pouvez pas déclarer une variable de type void.\n", ERROR, yylineno);
@@ -213,32 +214,38 @@ declaration
                                                                 table_t *table = nouvelle_table(); push(table); // Si la pile est vide on l'initialise
                                                         }
                                                         table_t * current = stack_head;
-                                                        while(current  != NULL){ // je vérifie si la variable a deja été declaré
-                                                                if(current ->symbole != NULL){
-                                                                        s = rechercher(current ->symbole, $2);
-                                                                        if(s != NULL)
-                                                                                break;
-                                                                }
-                                                                current  = current ->preced;
-                                                        }
-                                                        print_table();
+
+                                                        if(current != NULL)
+                                                                s = rechercher(current->symbole, $2);
+
+                                                        //print_table();
                                                         symbole_t * s2 = NULL;
                                                         if(stack_head != NULL)
-                                                                s2 = rechercherStack(stack_head->preced->symbole->param_list, $2); // Je vérifie aussi s'il existe dans les parametres des symboles de la fonction
+                                                                s2 = rechercherStack((getSymbole(stack_head->preced->symbole,-1))->param_list, $2); // Je vérifie aussi s'il existe dans les parametres des symboles de la fonction
 
-                                                        if((s != NULL) && (stack_head->symbole == pile->symbole) && (stack_head->preced == pile->preced)){
+                                                        if(s != NULL){
                                                                 printf("%sLigne %d, la variable '%s' a déjà été déclarée.\n", ERROR, yylineno, $2);
+                                                                print_table();
                                                                 exit(1);
                                                         } else if (s2 != NULL) {
+                                                                print_complete_table();
                                                                 printf("%sLigne %d, vous ne pouvez pas déclarer %s car elle est défini en parametre de fonction.\n", ERROR, yylineno, $2);
                                                                 exit(1);
                                                          }else {
+                                                                while(current != NULL){ // je vérifie si la variable a deja été declaré
+                                                                        if(current ->symbole != NULL){
+                                                                                s = rechercher(current->symbole, $2);
+                                                                                if(s != NULL)
+                                                                                        break;
+                                                                        }
+                                                                        current  = current ->preced;
+                                                                }
                                                                 if(s != NULL)
                                                                         printf("%sLigne %d, la variable '%s' en masque une autre\n", WARNING, yylineno, $2);
                                                                 table_t * t = *top(); // Le symbole n'existe pas, il faut le définir
                                                                 s = ajouter(&(t->symbole), $2);
                                                                 if($1 == EXTERN_INT_ || $1 == EXTERN_VOID_ || $1 == EXTERN_STRUCT_){ // Ici on gere les extern
-                                                                        s->ts = FONCTION_;
+                                                                        s->ts = FONCTION_; //EXTERN_FONCTION_;
                                                                         if(param_list_stack != NULL){ // S'il a des paramètres, on les sauvegardes
                                                                                 s->param_list = copyParamList(param_list_stack);
                                                                                 //displayParam(s->param_list);
@@ -311,7 +318,6 @@ direct_declarator
         | '(' declarator ')' {$$ = $2;}
         | direct_declarator '(' parameter_list ')' {
                 //clean_param_list_stack();
-                printf("finito\n");
                 $$ = $1;
         }
         | direct_declarator '(' ')' {$$ = $1;}
@@ -354,9 +360,9 @@ statement
         ;
 
 compound_statement
-        : ACCOO ACCOF
+        : ACCOO ACCOF {$$ = NULL;}
         | ACCOO statement_list ACCOF {$$ = $2;}
-        | ACCOO declaration_list ACCOF
+        | ACCOO declaration_list ACCOF {$$ = NULL;}
         | ACCOO declaration_list statement_list ACCOF {$$ = $3;}
         ;
 
@@ -479,7 +485,9 @@ function_init
         }
 
 function_definition
-        :  function_init compound_statement {
+        :  function_init compound_statement {   
+                                                printf("affichage du compound:\n");
+                                                print_tree($2, "");
                                                 clean_param_list_stack();              
                                                 node_t * n  = create_node(getSymbole($1,-1)->nom,$2);
                                                 n->symb = $1;
@@ -735,14 +743,15 @@ function_definition
         void addParam(param_list_t ** stack, symbole_t * s){
                 param_list_t * p = malloc(sizeof(param_list_t));
                 p->symbole = s;
+                param_list_t * st = *stack;
 
                 if(*stack == NULL){
                         *stack = p;
                 } else {
-                        while((*stack)->suivant != NULL){
-                                *stack = (*stack)->suivant;
+                        while(st->suivant != NULL){
+                                st = st->suivant;
                         }
-                        (*stack)->suivant = p;
+                        st->suivant = p;
                 }
         }
 

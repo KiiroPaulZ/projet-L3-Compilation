@@ -2,15 +2,13 @@ extern int printd(int i);
 
 /* int (*fact) (int no); */
 
-int f(int n){
-  return n;
+int foo(int k, int c){
+  return k + c;
 }
 
-int * foo(int * k, int m){
-  return k - m;
-}
-
-int main(int a){
+int main(){
+  int a;
+  int m;
   int i;
   int j;
   i = a + b;
@@ -19,8 +17,7 @@ int main(int a){
   (*fact)(1);*/
   printd(j);
   printd(i);
-  foo(i, b);
+  foo(a, m);
   printd(i);
-  foo(a, j);
   return 0;
 }

@@ -502,15 +502,15 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    62,    62,    71,    72,    76,    77,    86,   102,   107,
-     115,   127,   142,   143,   149,   153,   154,   155,   159,   160,
-     161,   165,   166,   167,   171,   172,   173,   174,   175,   179,
-     180,   181,   185,   186,   190,   191,   195,   196,   202,   264,
-     268,   275,   279,   280,   281,   285,   286,   287,   291,   292,
-     296,   300,   306,   310,   311,   312,   317,   321,   325,   332,
-     349,   350,   351,   352,   353,   357,   358,   359,   360,   363,
-     364,   375,   376,   380,   381,   385,   386,   390,   391,   395,
-     396,   400,   401,   404,   415,   424,   436,   437,   441,   482
+       0,    62,    62,    71,    72,    76,    77,    86,   103,   108,
+     116,   128,   143,   144,   150,   154,   155,   156,   160,   161,
+     162,   166,   167,   168,   172,   173,   174,   175,   176,   180,
+     181,   182,   186,   187,   191,   192,   196,   197,   203,   271,
+     275,   282,   286,   287,   288,   292,   293,   294,   298,   299,
+     303,   307,   313,   317,   318,   319,   323,   327,   331,   338,
+     355,   356,   357,   358,   359,   363,   364,   365,   366,   369,
+     370,   381,   382,   386,   387,   391,   392,   396,   397,   401,
+     402,   406,   407,   410,   421,   430,   442,   443,   447,   488
 };
 #endif
 
@@ -1584,9 +1584,10 @@ yyreduce:
 #line 86 "structfe.y"
     {
                 // S'il s'agit d'une fonction, qu'il a un symbole associé et que la liste des parametres correspond à la liste de parametres définie initialement
-                displayParam(param_list_stack);
-                displayParam((yyvsp[(1) - (4)].node)->symb->param_list);
-                printf("1: %d, 2: %d\n", paramLength(param_list_stack), paramLength((yyvsp[(1) - (4)].node)->symb->param_list));
+                //displayParam(param_list_stack);
+                //displayParam($1->symb->param_list);
+                //printf("%d <--\n", paramLength(param_list_stack));
+                //printf("1: %d, 2: %d\n", paramLength(param_list_stack), paramLength($1->symb->param_list));
                 if((yyvsp[(1) - (4)].node)->symb != NULL && (yyvsp[(1) - (4)].node)->symb->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength((yyvsp[(1) - (4)].node)->symb->param_list))){
                         clean_param_list_stack(); // Après chaque utilisation il faut penser à clean la pile de parametre globale
                         //print_node($1);
@@ -1601,7 +1602,7 @@ yyreduce:
     break;
 
   case 8:
-#line 102 "structfe.y"
+#line 103 "structfe.y"
     { 
                                                 node_t * n = NULL; 
                                                 n = create_node(".", mergeNodes(2, (yyvsp[(1) - (3)].node), create_node((yyvsp[(3) - (3)].nom), NULL))); 
@@ -1610,7 +1611,7 @@ yyreduce:
     break;
 
   case 9:
-#line 107 "structfe.y"
+#line 108 "structfe.y"
     { 
                                                 node_t * n = NULL; 
                                                 n = create_node("->", mergeNodes(2, (yyvsp[(1) - (3)].node), create_node((yyvsp[(3) - (3)].nom), NULL))); 
@@ -1619,7 +1620,7 @@ yyreduce:
     break;
 
   case 10:
-#line 115 "structfe.y"
+#line 116 "structfe.y"
     {
                 if((yyvsp[(1) - (1)].node)->symb == NULL){
                         symbole_t * s = malloc(sizeof(symbole_t));
@@ -1635,7 +1636,7 @@ yyreduce:
     break;
 
   case 11:
-#line 127 "structfe.y"
+#line 128 "structfe.y"
     {
                 if((yyvsp[(3) - (3)].node)->symb == NULL){ // Si le noeud n'a pas de symbole c'est qu'il s'agit d'une opération, donc on lui creer un symbole "vide"
                         symbole_t * s = malloc(sizeof(symbole_t));
@@ -1651,12 +1652,12 @@ yyreduce:
     break;
 
   case 12:
-#line 142 "structfe.y"
+#line 143 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 13:
-#line 143 "structfe.y"
+#line 144 "structfe.y"
     { 
                                                 node_t * n = NULL;
                                                 n = create_node((yyvsp[(1) - (2)].nom), mergeNodes(1,(yyvsp[(2) - (2)].node)));
@@ -1666,127 +1667,127 @@ yyreduce:
     break;
 
   case 15:
-#line 153 "structfe.y"
+#line 154 "structfe.y"
     {(yyval.nom)="&";}
     break;
 
   case 16:
-#line 154 "structfe.y"
+#line 155 "structfe.y"
     {(yyval.nom)="*";}
     break;
 
   case 17:
-#line 155 "structfe.y"
+#line 156 "structfe.y"
     {(yyval.nom)="-";}
     break;
 
   case 18:
-#line 159 "structfe.y"
+#line 160 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 19:
-#line 160 "structfe.y"
+#line 161 "structfe.y"
     {(yyval.node) = create_node("*", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 20:
-#line 161 "structfe.y"
+#line 162 "structfe.y"
     {(yyval.node) = create_node("/", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 21:
-#line 165 "structfe.y"
+#line 166 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 22:
-#line 166 "structfe.y"
+#line 167 "structfe.y"
     {(yyval.node) = create_node("+", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 23:
-#line 167 "structfe.y"
+#line 168 "structfe.y"
     {(yyval.node) = create_node("-", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 24:
-#line 171 "structfe.y"
+#line 172 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 25:
-#line 172 "structfe.y"
+#line 173 "structfe.y"
     {(yyval.node) = create_node("<", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 26:
-#line 173 "structfe.y"
+#line 174 "structfe.y"
     {(yyval.node) = create_node(">", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 27:
-#line 174 "structfe.y"
+#line 175 "structfe.y"
     {(yyval.node) = create_node("<=", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 28:
-#line 175 "structfe.y"
+#line 176 "structfe.y"
     {(yyval.node) = create_node(">=", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 29:
-#line 179 "structfe.y"
+#line 180 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 30:
-#line 180 "structfe.y"
+#line 181 "structfe.y"
     {(yyval.node) = create_node("==", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 31:
-#line 181 "structfe.y"
+#line 182 "structfe.y"
     {(yyval.node) = create_node("!=", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 32:
-#line 185 "structfe.y"
+#line 186 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 33:
-#line 186 "structfe.y"
+#line 187 "structfe.y"
     {(yyval.node) = create_node("&&", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 34:
-#line 190 "structfe.y"
+#line 191 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 35:
-#line 191 "structfe.y"
+#line 192 "structfe.y"
     {(yyval.node) = create_node("||", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 36:
-#line 195 "structfe.y"
+#line 196 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 37:
-#line 196 "structfe.y"
+#line 197 "structfe.y"
     {
                 (yyval.node) = create_node("=", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));
         }
     break;
 
   case 38:
-#line 202 "structfe.y"
+#line 203 "structfe.y"
     {       
-                                                        printf("la, je declare %s\n", (yyvsp[(2) - (3)].nom));
-                                                        print_table();
+                                                        
+                                                        //print_table();
                                                         //print_complete_table();
                                                         if((yyvsp[(1) - (3)].type) == VOID_){
                                                                 printf("%sLigne %d, vous ne pouvez pas déclarer une variable de type void.\n", ERROR, yylineno);
@@ -1798,32 +1799,38 @@ yyreduce:
                                                                 table_t *table = nouvelle_table(); push(table); // Si la pile est vide on l'initialise
                                                         }
                                                         table_t * current = stack_head;
-                                                        while(current  != NULL){ // je vérifie si la variable a deja été declaré
-                                                                if(current ->symbole != NULL){
-                                                                        s = rechercher(current ->symbole, (yyvsp[(2) - (3)].nom));
-                                                                        if(s != NULL)
-                                                                                break;
-                                                                }
-                                                                current  = current ->preced;
-                                                        }
-                                                        print_table();
+
+                                                        if(current != NULL)
+                                                                s = rechercher(current->symbole, (yyvsp[(2) - (3)].nom));
+
+                                                        //print_table();
                                                         symbole_t * s2 = NULL;
                                                         if(stack_head != NULL)
-                                                                s2 = rechercherStack(stack_head->preced->symbole->param_list, (yyvsp[(2) - (3)].nom)); // Je vérifie aussi s'il existe dans les parametres des symboles de la fonction
+                                                                s2 = rechercherStack((getSymbole(stack_head->preced->symbole,-1))->param_list, (yyvsp[(2) - (3)].nom)); // Je vérifie aussi s'il existe dans les parametres des symboles de la fonction
 
-                                                        if((s != NULL) && (stack_head->symbole == pile->symbole) && (stack_head->preced == pile->preced)){
+                                                        if(s != NULL){
                                                                 printf("%sLigne %d, la variable '%s' a déjà été déclarée.\n", ERROR, yylineno, (yyvsp[(2) - (3)].nom));
+                                                                print_table();
                                                                 exit(1);
                                                         } else if (s2 != NULL) {
+                                                                print_complete_table();
                                                                 printf("%sLigne %d, vous ne pouvez pas déclarer %s car elle est défini en parametre de fonction.\n", ERROR, yylineno, (yyvsp[(2) - (3)].nom));
                                                                 exit(1);
                                                          }else {
+                                                                while(current != NULL){ // je vérifie si la variable a deja été declaré
+                                                                        if(current ->symbole != NULL){
+                                                                                s = rechercher(current->symbole, (yyvsp[(2) - (3)].nom));
+                                                                                if(s != NULL)
+                                                                                        break;
+                                                                        }
+                                                                        current  = current ->preced;
+                                                                }
                                                                 if(s != NULL)
                                                                         printf("%sLigne %d, la variable '%s' en masque une autre\n", WARNING, yylineno, (yyvsp[(2) - (3)].nom));
                                                                 table_t * t = *top(); // Le symbole n'existe pas, il faut le définir
                                                                 s = ajouter(&(t->symbole), (yyvsp[(2) - (3)].nom));
                                                                 if((yyvsp[(1) - (3)].type) == EXTERN_INT_ || (yyvsp[(1) - (3)].type) == EXTERN_VOID_ || (yyvsp[(1) - (3)].type) == EXTERN_STRUCT_){ // Ici on gere les extern
-                                                                        s->ts = FONCTION_;
+                                                                        s->ts = FONCTION_; //EXTERN_FONCTION_;
                                                                         if(param_list_stack != NULL){ // S'il a des paramètres, on les sauvegardes
                                                                                 s->param_list = copyParamList(param_list_stack);
                                                                                 //displayParam(s->param_list);
@@ -1849,7 +1856,7 @@ yyreduce:
     break;
 
   case 40:
-#line 268 "structfe.y"
+#line 275 "structfe.y"
     {       
                                         switch((yyvsp[(2) - (2)].type)){
                                                 case INT_: (yyval.type) = EXTERN_INT_; break;
@@ -1860,27 +1867,27 @@ yyreduce:
     break;
 
   case 41:
-#line 275 "structfe.y"
+#line 282 "structfe.y"
     {(yyval.type) = (yyvsp[(1) - (1)].type);}
     break;
 
   case 42:
-#line 279 "structfe.y"
+#line 286 "structfe.y"
     { (yyval.type) = VOID_ ;}
     break;
 
   case 43:
-#line 280 "structfe.y"
+#line 287 "structfe.y"
     { (yyval.type) = INT_ ;}
     break;
 
   case 44:
-#line 281 "structfe.y"
+#line 288 "structfe.y"
     {(yyval.type) = STRUCT_ ;}
     break;
 
   case 51:
-#line 300 "structfe.y"
+#line 307 "structfe.y"
     { 
                 char p[strlen((yyvsp[(2) - (2)].nom))+2]; 
                 sprintf(p, "*%s", (yyvsp[(2) - (2)].nom)); 
@@ -1890,36 +1897,35 @@ yyreduce:
     break;
 
   case 52:
-#line 306 "structfe.y"
+#line 313 "structfe.y"
     { (yyval.nom) = (yyvsp[(1) - (1)].nom); }
     break;
 
   case 53:
-#line 310 "structfe.y"
+#line 317 "structfe.y"
     {(yyval.nom) = (yyvsp[(1) - (1)].nom);}
     break;
 
   case 54:
-#line 311 "structfe.y"
+#line 318 "structfe.y"
     {(yyval.nom) = (yyvsp[(2) - (3)].nom);}
     break;
 
   case 55:
-#line 312 "structfe.y"
+#line 319 "structfe.y"
     {
                 //clean_param_list_stack();
-                printf("finito\n");
                 (yyval.nom) = (yyvsp[(1) - (4)].nom);
         }
     break;
 
   case 56:
-#line 317 "structfe.y"
+#line 323 "structfe.y"
     {(yyval.nom) = (yyvsp[(1) - (3)].nom);}
     break;
 
   case 57:
-#line 321 "structfe.y"
+#line 327 "structfe.y"
     {
                 addParam(&param_list_stack, (yyvsp[(1) - (1)].symb));
                 //displayParam(param_list_stack);
@@ -1927,7 +1933,7 @@ yyreduce:
     break;
 
   case 58:
-#line 325 "structfe.y"
+#line 331 "structfe.y"
     {
                 addParam(&param_list_stack, (yyvsp[(3) - (3)].symb));
                 //displayParam(param_list_stack);
@@ -1935,7 +1941,7 @@ yyreduce:
     break;
 
   case 59:
-#line 332 "structfe.y"
+#line 338 "structfe.y"
     {
                 char * nom = (yyvsp[(2) - (2)].nom); // Je sauvegarde les informations
                 symbole_t * s;
@@ -1953,47 +1959,57 @@ yyreduce:
     break;
 
   case 60:
-#line 349 "structfe.y"
+#line 355 "structfe.y"
     {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node_list));}
     break;
 
   case 61:
-#line 350 "structfe.y"
+#line 356 "structfe.y"
     {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node));}
     break;
 
   case 62:
-#line 351 "structfe.y"
+#line 357 "structfe.y"
     {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node));}
     break;
 
   case 63:
-#line 352 "structfe.y"
+#line 358 "structfe.y"
     {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node));}
     break;
 
   case 64:
-#line 353 "structfe.y"
+#line 359 "structfe.y"
     {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node));}
     break;
 
+  case 65:
+#line 363 "structfe.y"
+    {(yyval.node_list) = NULL;}
+    break;
+
   case 66:
-#line 358 "structfe.y"
+#line 364 "structfe.y"
     {(yyval.node_list) = (yyvsp[(2) - (3)].node_list);}
     break;
 
+  case 67:
+#line 365 "structfe.y"
+    {(yyval.node_list) = NULL;}
+    break;
+
   case 68:
-#line 360 "structfe.y"
+#line 366 "structfe.y"
     {(yyval.node_list) = (yyvsp[(3) - (4)].node_list);}
     break;
 
   case 69:
-#line 363 "structfe.y"
+#line 369 "structfe.y"
     {table_t *table = nouvelle_table(); push(table);}
     break;
 
   case 70:
-#line 364 "structfe.y"
+#line 370 "structfe.y"
     {
                 /*table_t *table = pop(); 
                 detruire_table(&table);
@@ -2006,27 +2022,27 @@ yyreduce:
     break;
 
   case 73:
-#line 380 "structfe.y"
+#line 386 "structfe.y"
     { (yyval.node_list) = (yyvsp[(1) - (1)].node_list);}
     break;
 
   case 74:
-#line 381 "structfe.y"
+#line 387 "structfe.y"
     {(yyval.node_list) = pushNode((yyvsp[(1) - (2)].node_list), (yyvsp[(2) - (2)].node_list)->first);}
     break;
 
   case 76:
-#line 386 "structfe.y"
+#line 392 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (2)].node);}
     break;
 
   case 82:
-#line 401 "structfe.y"
+#line 407 "structfe.y"
     {(yyval.node) = (yyvsp[(2) - (3)].node); /*$$ = create_node("jump_statement", mergeNodes(3,create_node("return", NULL), $2, create_node(";", NULL)));*/}
     break;
 
   case 83:
-#line 404 "structfe.y"
+#line 410 "structfe.y"
     {
                                 table_t *table = pop(); 
                                 detruire_table(&table);
@@ -2039,7 +2055,7 @@ yyreduce:
     break;
 
   case 84:
-#line 415 "structfe.y"
+#line 421 "structfe.y"
     {
                 nodes_list_t * arbre = NULL;
                 if((yyvsp[(1) - (1)].node) != NULL){
@@ -2052,7 +2068,7 @@ yyreduce:
     break;
 
   case 85:
-#line 424 "structfe.y"
+#line 430 "structfe.y"
     {
                 nodes_list_t * arbre = NULL;
                 if((yyvsp[(2) - (2)].node) != NULL){
@@ -2065,17 +2081,17 @@ yyreduce:
     break;
 
   case 86:
-#line 436 "structfe.y"
+#line 442 "structfe.y"
     { (yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 87:
-#line 437 "structfe.y"
+#line 443 "structfe.y"
     { (yyval.node) = NULL;}
     break;
 
   case 88:
-#line 441 "structfe.y"
+#line 447 "structfe.y"
     {
                 
                 symbole_t *s = NULL;
@@ -2118,8 +2134,10 @@ yyreduce:
     break;
 
   case 89:
-#line 482 "structfe.y"
-    {
+#line 488 "structfe.y"
+    {   
+                                                printf("affichage du compound:\n");
+                                                print_tree((yyvsp[(2) - (2)].node_list), "");
                                                 clean_param_list_stack();              
                                                 node_t * n  = create_node(getSymbole((yyvsp[(1) - (2)].symb),-1)->nom,(yyvsp[(2) - (2)].node_list));
                                                 n->symb = (yyvsp[(1) - (2)].symb);
@@ -2129,7 +2147,7 @@ yyreduce:
 
 
 /* Line 1267 of yacc.c.  */
-#line 2133 "y.tab.c"
+#line 2151 "y.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2343,7 +2361,7 @@ yyreturn:
 }
 
 
-#line 490 "structfe.y"
+#line 498 "structfe.y"
 
         int yyerror(char *s){ // fonction pour détecter une erreur
                 fprintf(stderr, "%s\n", s);
@@ -2592,14 +2610,15 @@ yyreturn:
         void addParam(param_list_t ** stack, symbole_t * s){
                 param_list_t * p = malloc(sizeof(param_list_t));
                 p->symbole = s;
+                param_list_t * st = *stack;
 
                 if(*stack == NULL){
                         *stack = p;
                 } else {
-                        while((*stack)->suivant != NULL){
-                                *stack = (*stack)->suivant;
+                        while(st->suivant != NULL){
+                                st = st->suivant;
                         }
-                        (*stack)->suivant = p;
+                        st->suivant = p;
                 }
         }
 

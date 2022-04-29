@@ -12,7 +12,7 @@ int pos;
 
 typedef enum { INT_, VOID_, STRUCT_,  EXTERN_INT_, EXTERN_VOID_, EXTERN_STRUCT_} type_t;
 
-typedef enum { FONCTION_, VARIABLE_, STRUCTURE_} ts_type;
+typedef enum { FONCTION_, VARIABLE_, STRUCTURE_, EXTERN_FONCTION_} ts_type;
 
 typedef struct _param_t {
     type_t type;
