@@ -132,12 +132,8 @@
         //param_list_stack_t * param_list_stack;
         //int pos;
         void print_table();
-        void print_node(node_t * n);
-        void print_tree(nodes_list_t * n, char * space);
         void semanticAnalysis(nodes_list_t * n);
-        void getLeaves(node_t * n, node_t * t);
-
-
+        int paramMatching(param_list_t * a, param_list_t * b);
 
 
 /* Enabling traces.  */
@@ -160,20 +156,21 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 26 "structfe.y"
+#line 22 "structfe.y"
 {
     char *nom; // represente nom des variables, fonctions, structures
     char* val;
     type_t type; // int ou void (variable ou fonction)
     // Une fonction prend 0 OU N parametre(s)
     param_t param; //
+    param_list_t * param_list;
     //liste_t *liste; // liste de parametres
     node_t * node;
     nodes_list_t * node_list;
     symbole_t * symb;
 }
 /* Line 193 of yacc.c.  */
-#line 177 "y.tab.c"
+#line 174 "y.tab.c"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -186,7 +183,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 190 "y.tab.c"
+#line 187 "y.tab.c"
 
 #ifdef short
 # undef short
@@ -399,18 +396,18 @@ union yyalloc
 #endif
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  23
+#define YYFINAL  24
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   218
+#define YYLAST   246
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  38
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  37
+#define YYNNTS  38
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  88
+#define YYNRULES  89
 /* YYNRULES -- Number of states.  */
-#define YYNSTATES  155
+#define YYNSTATES  156
 
 /* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
 #define YYUNDEFTOK  2
@@ -465,7 +462,7 @@ static const yytype_uint16 yyprhs[] =
      153,   157,   160,   162,   164,   168,   173,   177,   179,   183,
      186,   188,   190,   192,   194,   196,   199,   203,   207,   212,
      214,   216,   218,   221,   223,   226,   228,   231,   237,   245,
-     251,   259,   262,   266,   268,   270,   273,   275,   277
+     251,   259,   262,   266,   268,   270,   273,   275,   277,   280
 };
 
 /* YYRHS -- A `-1'-separated list of the rules' RHS.  */
@@ -498,22 +495,22 @@ static const yytype_int8 yyrhs[] =
       28,    61,    18,    61,    -1,    19,    27,    50,    28,    61,
       -1,    20,    27,    67,    67,    50,    28,    61,    -1,    21,
       35,    -1,    21,    50,    35,    -1,    72,    -1,    73,    -1,
-      72,    73,    -1,    74,    -1,    51,    -1,    52,    57,    62,
-      -1
+      72,    73,    -1,    75,    -1,    51,    -1,    52,    57,    -1,
+      74,    62,    -1
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    65,    65,    74,    75,    79,    80,    88,    96,   101,
-     109,   110,   114,   115,   121,   125,   126,   127,   131,   132,
-     133,   137,   138,   139,   143,   144,   145,   146,   147,   151,
-     152,   153,   157,   158,   162,   163,   167,   168,   174,   224,
-     228,   235,   239,   240,   241,   245,   246,   247,   251,   252,
-     256,   260,   266,   270,   271,   272,   275,   279,   282,   288,
-     305,   306,   307,   308,   309,   313,   314,   315,   316,   319,
-     320,   331,   332,   336,   337,   341,   342,   346,   347,   351,
-     352,   356,   357,   360,   371,   379,   390,   391,   395
+       0,    62,    62,    71,    72,    76,    77,    86,   102,   107,
+     115,   127,   142,   143,   149,   153,   154,   155,   159,   160,
+     161,   165,   166,   167,   171,   172,   173,   174,   175,   179,
+     180,   181,   185,   186,   190,   191,   195,   196,   202,   264,
+     268,   275,   279,   280,   281,   285,   286,   287,   291,   292,
+     296,   300,   306,   310,   311,   312,   317,   321,   325,   332,
+     349,   350,   351,   352,   353,   357,   358,   359,   360,   363,
+     364,   375,   376,   380,   381,   385,   386,   390,   391,   395,
+     396,   400,   401,   404,   415,   424,   436,   437,   441,   482
 };
 #endif
 
@@ -537,7 +534,7 @@ static const char *const yytname[] =
   "parameter_declaration", "statement", "compound_statement", "ACCOO",
   "ACCOF", "declaration_list", "statement_list", "expression_statement",
   "selection_statement", "iteration_statement", "jump_statement",
-  "program_start", "program", "external_declaration",
+  "program_start", "program", "external_declaration", "function_init",
   "function_definition", 0
 };
 #endif
@@ -565,7 +562,7 @@ static const yytype_uint8 yyr1[] =
       56,    57,    57,    58,    58,    58,    58,    59,    59,    60,
       61,    61,    61,    61,    61,    62,    62,    62,    62,    63,
       64,    65,    65,    66,    66,    67,    67,    68,    68,    69,
-      69,    70,    70,    71,    72,    72,    73,    73,    74
+      69,    70,    70,    71,    72,    72,    73,    73,    74,    75
 };
 
 /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
@@ -579,7 +576,7 @@ static const yytype_uint8 yyr2[] =
        3,     2,     1,     1,     3,     4,     3,     1,     3,     2,
        1,     1,     1,     1,     1,     2,     3,     3,     4,     1,
        1,     1,     2,     1,     2,     1,     2,     5,     7,     5,
-       7,     2,     3,     1,     1,     2,     1,     1,     3
+       7,     2,     3,     1,     1,     2,     1,     1,     2,     2
 };
 
 /* YYDEFACT[STATE-NAME] -- Default rule to reduce with in state
@@ -588,62 +585,62 @@ static const yytype_uint8 yyr2[] =
 static const yytype_uint8 yydefact[] =
 {
        0,     0,    43,    42,     0,    87,     0,    41,    44,     0,
-      83,    84,    86,    40,    44,    47,     0,    53,     0,     0,
-       0,    52,    39,     1,    85,     0,     0,     0,    48,    51,
-       0,    38,    69,    88,     0,     0,     0,     0,    46,    49,
-      54,     2,     3,     0,     0,     0,     0,     0,    17,    16,
-       0,    15,    75,    70,     5,    12,    18,     0,    21,    24,
-      29,    32,    34,    36,     0,    71,     0,    73,    60,    65,
-       0,     0,    61,    62,    63,    64,    56,     0,     0,    57,
-      45,    50,    14,     0,     0,     0,    81,     0,     0,     0,
-       0,     0,     0,    13,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,    76,     0,    72,    67,
-       0,    74,    66,    59,    55,     0,     0,     0,     0,    82,
-       4,     9,     6,     0,    10,     8,    37,    19,    20,    18,
-      22,    23,    27,    28,    25,    26,    30,    31,    33,    35,
-      68,    58,     0,     0,     0,     7,     0,    77,    79,     0,
-      11,     0,     0,    78,    80
+      83,    84,     0,    86,    40,    44,    47,     0,    53,     0,
+       0,    88,    52,    39,     1,    85,    69,    89,     0,     0,
+       0,     0,    48,    51,     0,    38,     0,     2,     3,     0,
+       0,     0,     0,     0,    17,    16,     0,    15,    75,    70,
+       5,    12,    18,     0,    21,    24,    29,    32,    34,    36,
+       0,    71,     0,    73,    60,    65,     0,     0,    61,    62,
+      63,    64,     0,     0,    46,    49,    54,    56,     0,     0,
+      57,    14,     0,     0,     0,    81,     0,     0,     0,     0,
+       0,     0,    13,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,    76,     0,    72,    67,     0,
+      74,    66,    45,    50,    59,    55,     0,     0,     0,     0,
+      82,     4,     9,     6,     0,    10,     8,    37,    19,    20,
+      18,    22,    23,    27,    28,    25,    26,    30,    31,    33,
+      35,    68,    58,     0,     0,     0,     7,     0,    77,    79,
+       0,    11,     0,     0,    78,    80
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,    54,    55,   123,    56,    57,    58,    59,    60,    61,
-      62,    63,    64,     5,     6,     7,    14,    27,    28,    20,
-      21,    78,    79,    67,    68,    34,    69,    70,    71,    72,
-      73,    74,    75,     9,    10,    11,    12
+      -1,    50,    51,   124,    52,    53,    54,    55,    56,    57,
+      58,    59,    60,     5,     6,     7,    15,    31,    32,    21,
+      22,    79,    80,    63,    64,    28,    65,    66,    67,    68,
+      69,    70,    71,     9,    10,    11,    12,    13
 };
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
-#define YYPACT_NINF -71
+#define YYPACT_NINF -67
 static const yytype_int16 yypact[] =
 {
-       7,    63,   -71,   -71,    12,   -71,    85,   -71,    14,    67,
-       7,   -71,   -71,   -71,   -71,     3,    63,   -71,    39,    85,
-      84,    53,   -71,   -71,   -71,    63,    85,    -3,   -71,    53,
-      56,   -71,   -71,   -71,    87,    55,   165,    54,   -71,   -71,
-     -71,   -71,   -71,   187,    78,    86,    94,   147,   -71,   -71,
-     187,   -71,   -71,   -71,   -71,    69,    96,   187,   101,   105,
-      19,   128,    83,   122,   111,   -71,    85,   -71,   -71,   -71,
-      87,   112,   -71,   -71,   -71,   -71,   -71,    85,    57,   -71,
-     -71,   -71,   -71,   187,   187,   162,   -71,   118,   127,   156,
-     172,   166,   187,   -71,   187,   187,   187,   187,   187,   187,
-     187,   187,   187,   187,   187,   187,   -71,   148,   -71,   -71,
-     112,   -71,   -71,   -71,   -71,     7,   159,   160,   162,   -71,
-     -71,   -71,   -71,    65,   -71,   -71,   -71,   -71,   -71,   -71,
-     101,   101,   105,   105,   105,   105,    19,    19,   128,    83,
-     -71,   -71,   137,   137,   187,   -71,   187,   176,   -71,   170,
-     -71,   137,   137,   -71,   -71
+       9,    80,   -67,   -67,     8,   -67,    14,   -67,   -21,    19,
+       9,   -67,    -9,   -67,   -67,   -67,     0,    80,   -67,    10,
+      14,    18,    28,   -67,   -67,   -67,   -67,   -67,   114,    80,
+      14,    60,   -67,    28,    36,   -67,   218,   -67,   -67,   199,
+      45,    61,    63,    58,   -67,   -67,   199,   -67,   -67,   -67,
+     -67,     2,    57,   199,    33,    44,    27,    70,    90,    91,
+      85,   -67,    14,   -67,   -67,   -67,   114,   139,   -67,   -67,
+     -67,   -67,    84,    97,   -67,   -67,   -67,   -67,    14,    -2,
+     -67,   -67,   199,   199,   174,   -67,   101,    98,   136,   189,
+     137,   199,   -67,   199,   199,   199,   199,   199,   199,   199,
+     199,   199,   199,   199,   199,   -67,    18,   -67,   -67,   139,
+     -67,   -67,   -67,   -67,   -67,   -67,     9,   118,   119,   174,
+     -67,   -67,   -67,   -67,    17,   -67,   -67,   -67,   -67,   -67,
+     -67,    33,    33,    44,    44,    44,    44,    27,    27,    70,
+      90,   -67,   -67,   164,   164,   199,   -67,   199,   130,   -67,
+     124,   -67,   164,   164,   -67,   -67
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
-     -71,   -71,   -71,   -71,   -41,   -71,    48,   -69,    60,    80,
-      99,   -71,   -47,   -24,   -29,     8,     4,   180,    -8,    -1,
-     183,   -71,    91,   -70,   188,   -71,   -63,   -71,   139,   -68,
-     -71,   -71,   -71,   -71,   -71,   197,   -71
+     -67,   -67,   -67,   -67,    12,   -67,   -26,    25,   -18,    50,
+      51,   -67,   -43,   -12,   -24,     1,     5,   125,   -22,   -10,
+     138,   -67,    48,   -66,   149,   -67,   -60,   -67,    99,   -63,
+     -67,   -67,   -67,   -67,   -67,   161,   -67,   -67
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
@@ -653,54 +650,60 @@ static const yytype_int16 yypgoto[] =
 #define YYTABLE_NINF -1
 static const yytype_uint8 yytable[] =
 {
-      87,   111,    82,    88,     8,    66,    77,   109,   112,    13,
-      65,     2,     3,     4,     8,    15,    93,   118,    30,    39,
-       1,     2,     3,     4,    26,    37,    98,    99,    39,   132,
-     133,   134,   135,    26,    38,    26,   116,   117,     8,    25,
-     111,    66,    17,   124,    26,   126,   108,   140,    16,    22,
-     144,   100,   101,   127,   128,   129,   129,   129,   129,   129,
-     129,   129,   129,   129,   129,   107,    19,    23,     1,     2,
-       3,     4,   147,   148,     8,    89,   113,     2,     3,     4,
-      35,   153,   154,    76,    40,   114,    77,   115,    17,    81,
-      41,    42,    43,   145,   104,   146,    90,   149,    91,   150,
-       1,     2,     3,     4,    44,    83,    45,    46,    47,    18,
-      48,    49,    19,    84,    50,    41,    42,    43,    51,    31,
-      32,    85,    52,    32,    53,    94,    95,    96,    97,    44,
-      92,    45,    46,    47,   105,    48,    49,   102,   103,    50,
-      41,    42,    43,    51,   130,   131,   106,    52,    32,    53,
-      41,    42,    43,   119,    44,   120,    45,    46,    47,   121,
-      48,    49,   136,   137,    50,    41,    42,    43,    51,   125,
-      48,    49,    52,    32,    50,    41,    42,    43,    51,     2,
-       3,     4,    86,    31,   138,    48,    49,   142,   143,    50,
-      41,    42,    43,    51,   151,    48,    49,    52,   152,    50,
-     122,    29,    80,    51,   139,    36,   141,    24,    33,   110,
-      48,    49,     0,     0,    50,     0,     0,     0,    51
+      86,   110,    14,    87,    62,     8,   108,   111,    88,    75,
+      34,    16,    78,    18,    23,     8,    61,    18,    30,    24,
+      73,   119,     1,     2,     3,     4,   115,    26,   116,    89,
+      30,    90,    30,     8,    97,    98,    29,    20,    19,   117,
+     118,    20,    62,   110,    17,   146,   125,   147,   127,   141,
+      75,    81,   106,    35,   107,    36,   145,    93,    94,    99,
+     100,    37,    38,    39,    76,    92,    95,    96,   114,   131,
+     132,     8,    82,    30,     2,     3,     4,   148,   149,   101,
+     102,    44,    45,   137,   138,    46,   154,   155,    83,    47,
+      84,    91,    78,    85,     2,     3,     4,    74,     2,     3,
+       4,   103,   150,   104,   151,   128,   129,   130,   130,   130,
+     130,   130,   130,   130,   130,   130,   130,    37,    38,    39,
+     105,   112,   133,   134,   135,   136,   121,     1,     2,     3,
+       4,    40,   113,    41,    42,    43,   120,    44,    45,   122,
+     126,    46,    37,    38,    39,    47,   143,   144,   152,    48,
+      26,    49,   153,   139,    72,   140,    40,    33,    41,    42,
+      43,    27,    44,    45,   142,   109,    46,    37,    38,    39,
+      47,    25,     0,     0,    48,    26,    49,    37,    38,    39,
+       0,    40,     0,    41,    42,    43,     0,    44,    45,     0,
+       0,    46,    37,    38,    39,    47,     0,    44,    45,    48,
+      26,    46,    37,    38,    39,    47,     0,     0,     0,    48,
+       0,     0,    44,    45,     0,     0,    46,   123,     0,     0,
+      47,     0,    44,    45,     0,     0,    46,     0,     0,     0,
+      47,     1,     2,     3,     4,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,    77
 };
 
 static const yytype_int16 yycheck[] =
 {
-      47,    71,    43,    50,     0,    34,    35,    70,    71,     1,
-      34,    14,    15,    16,    10,     3,    57,    85,    19,    27,
-      13,    14,    15,    16,    16,    26,     7,     8,    36,    98,
-      99,   100,   101,    25,    37,    27,    83,    84,    34,    36,
-     110,    70,     3,    90,    36,    92,    70,   110,    36,    35,
-     118,    32,    33,    94,    95,    96,    97,    98,    99,   100,
-     101,   102,   103,   104,   105,    66,    27,     0,    13,    14,
-      15,    16,   142,   143,    70,     6,    77,    14,    15,    16,
-      27,   151,   152,    28,    28,    28,   115,    30,     3,    35,
-       3,     4,     5,    28,    11,    30,    27,   144,    29,   146,
-      13,    14,    15,    16,    17,    27,    19,    20,    21,    24,
-      23,    24,    27,    27,    27,     3,     4,     5,    31,    35,
-      36,    27,    35,    36,    37,    24,    25,    22,    23,    17,
-      34,    19,    20,    21,    12,    23,    24,     9,    10,    27,
-       3,     4,     5,    31,    96,    97,    35,    35,    36,    37,
-       3,     4,     5,    35,    17,    28,    19,    20,    21,     3,
-      23,    24,   102,   103,    27,     3,     4,     5,    31,     3,
-      23,    24,    35,    36,    27,     3,     4,     5,    31,    14,
-      15,    16,    35,    35,   104,    23,    24,    28,    28,    27,
-       3,     4,     5,    31,    18,    23,    24,    35,    28,    27,
-      28,    18,    37,    31,   105,    25,   115,    10,    20,    70,
-      23,    24,    -1,    -1,    27,    -1,    -1,    -1,    31
+      43,    67,     1,    46,    28,     0,    66,    67,     6,    31,
+      20,     3,    36,     3,    35,    10,    28,     3,    17,     0,
+      30,    84,    13,    14,    15,    16,    28,    36,    30,    27,
+      29,    29,    31,    28,     7,     8,    36,    27,    24,    82,
+      83,    27,    66,   109,    36,    28,    89,    30,    91,   109,
+      72,    39,    62,    35,    66,    27,   119,    24,    25,    32,
+      33,     3,     4,     5,    28,    53,    22,    23,    78,    95,
+      96,    66,    27,    72,    14,    15,    16,   143,   144,     9,
+      10,    23,    24,   101,   102,    27,   152,   153,    27,    31,
+      27,    34,   116,    35,    14,    15,    16,    37,    14,    15,
+      16,    11,   145,    12,   147,    93,    94,    95,    96,    97,
+      98,    99,   100,   101,   102,   103,   104,     3,     4,     5,
+      35,    37,    97,    98,    99,   100,    28,    13,    14,    15,
+      16,    17,    35,    19,    20,    21,    35,    23,    24,     3,
+       3,    27,     3,     4,     5,    31,    28,    28,    18,    35,
+      36,    37,    28,   103,    29,   104,    17,    19,    19,    20,
+      21,    12,    23,    24,   116,    66,    27,     3,     4,     5,
+      31,    10,    -1,    -1,    35,    36,    37,     3,     4,     5,
+      -1,    17,    -1,    19,    20,    21,    -1,    23,    24,    -1,
+      -1,    27,     3,     4,     5,    31,    -1,    23,    24,    35,
+      36,    27,     3,     4,     5,    31,    -1,    -1,    -1,    35,
+      -1,    -1,    23,    24,    -1,    -1,    27,    28,    -1,    -1,
+      31,    -1,    23,    24,    -1,    -1,    27,    -1,    -1,    -1,
+      31,    13,    14,    15,    16,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    28
 };
 
 /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
@@ -708,21 +711,21 @@ static const yytype_int16 yycheck[] =
 static const yytype_uint8 yystos[] =
 {
        0,    13,    14,    15,    16,    51,    52,    53,    54,    71,
-      72,    73,    74,    53,    54,     3,    36,     3,    24,    27,
-      57,    58,    35,     0,    73,    36,    53,    55,    56,    58,
-      57,    35,    36,    62,    63,    27,    55,    57,    37,    56,
-      28,     3,     4,     5,    17,    19,    20,    21,    23,    24,
-      27,    31,    35,    37,    39,    40,    42,    43,    44,    45,
-      46,    47,    48,    49,    50,    51,    52,    61,    62,    64,
-      65,    66,    67,    68,    69,    70,    28,    52,    59,    60,
-      37,    35,    42,    27,    27,    27,    35,    50,    50,     6,
-      27,    29,    34,    42,    24,    25,    22,    23,     7,     8,
-      32,    33,     9,    10,    11,    12,    35,    57,    51,    64,
-      66,    61,    64,    57,    28,    30,    50,    50,    67,    35,
-      28,     3,    28,    41,    50,     3,    50,    42,    42,    42,
-      44,    44,    45,    45,    45,    45,    46,    46,    47,    48,
-      64,    60,    28,    28,    67,    28,    30,    61,    61,    50,
-      50,    18,    28,    61,    61
+      72,    73,    74,    75,    53,    54,     3,    36,     3,    24,
+      27,    57,    58,    35,     0,    73,    36,    62,    63,    36,
+      53,    55,    56,    58,    57,    35,    27,     3,     4,     5,
+      17,    19,    20,    21,    23,    24,    27,    31,    35,    37,
+      39,    40,    42,    43,    44,    45,    46,    47,    48,    49,
+      50,    51,    52,    61,    62,    64,    65,    66,    67,    68,
+      69,    70,    55,    57,    37,    56,    28,    28,    52,    59,
+      60,    42,    27,    27,    27,    35,    50,    50,     6,    27,
+      29,    34,    42,    24,    25,    22,    23,     7,     8,    32,
+      33,     9,    10,    11,    12,    35,    57,    51,    64,    66,
+      61,    64,    37,    35,    57,    28,    30,    50,    50,    67,
+      35,    28,     3,    28,    41,    50,     3,    50,    42,    42,
+      42,    44,    44,    45,    45,    45,    45,    46,    46,    47,
+      48,    64,    60,    28,    28,    67,    28,    30,    61,    61,
+      50,    50,    18,    28,    61,    61
 };
 
 #define yyerrok		(yyerrstatus = 0)
@@ -1537,7 +1540,7 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 65 "structfe.y"
+#line 62 "structfe.y"
     {
                         symbole_t * s = NULL;
                         node_t * n = NULL;
@@ -1550,26 +1553,27 @@ yyreduce:
     break;
 
   case 3:
-#line 74 "structfe.y"
+#line 71 "structfe.y"
     { node_t * n = NULL; n = create_node((yyvsp[(1) - (1)].val), NULL); /*n->type = INT_;*/ (yyval.node) = n; }
     break;
 
   case 4:
-#line 75 "structfe.y"
+#line 72 "structfe.y"
     { (yyval.node) = (yyvsp[(2) - (3)].node); }
     break;
 
   case 5:
-#line 79 "structfe.y"
+#line 76 "structfe.y"
     { (yyval.node) = (yyvsp[(1) - (1)].node); }
     break;
 
   case 6:
-#line 80 "structfe.y"
+#line 77 "structfe.y"
     { 
-                if((yyvsp[(1) - (3)].node)->symb != NULL && (yyvsp[(1) - (3)].node)->symb->ts == FONCTION_){
+                if((yyvsp[(1) - (3)].node)->symb != NULL && (yyvsp[(1) - (3)].node)->symb->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength((yyvsp[(1) - (3)].node)->symb->param_list))){
                         (yyval.node) = (yyvsp[(1) - (3)].node);
                 } else {
+                        clean_param_list_stack();
                         printf("%sLigne %d, ceci n'est pas une fonction anonyme!\n",ERROR, yylineno);
                         exit(1);
                 }
@@ -1577,19 +1581,27 @@ yyreduce:
     break;
 
   case 7:
-#line 88 "structfe.y"
+#line 86 "structfe.y"
     {
-                if((yyvsp[(1) - (4)].node)->symb != NULL && (yyvsp[(1) - (4)].node)->symb->ts == FONCTION_){
+                // S'il s'agit d'une fonction, qu'il a un symbole associé et que la liste des parametres correspond à la liste de parametres définie initialement
+                displayParam(param_list_stack);
+                displayParam((yyvsp[(1) - (4)].node)->symb->param_list);
+                printf("1: %d, 2: %d\n", paramLength(param_list_stack), paramLength((yyvsp[(1) - (4)].node)->symb->param_list));
+                if((yyvsp[(1) - (4)].node)->symb != NULL && (yyvsp[(1) - (4)].node)->symb->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength((yyvsp[(1) - (4)].node)->symb->param_list))){
+                        clean_param_list_stack(); // Après chaque utilisation il faut penser à clean la pile de parametre globale
+                        //print_node($1);
                         (yyval.node) = (yyvsp[(1) - (4)].node);
                 } else {
-                        printf("%sLigne %d, ceci n'est pas une fonction et/ou lui manque des paramètres!\n",ERROR, yylineno);
+                        //printf("%d - %d\n", paramLength(param_list_stack), paramLength($1->symb->param_list));
+                        clean_param_list_stack();
+                        printf("%sLigne %d, la fonction n'est pas déclaré et/ou le nombre de paramètres n'est pas valide!\n",ERROR, yylineno);
                         exit(1);
                 }
         }
     break;
 
   case 8:
-#line 96 "structfe.y"
+#line 102 "structfe.y"
     { 
                                                 node_t * n = NULL; 
                                                 n = create_node(".", mergeNodes(2, (yyvsp[(1) - (3)].node), create_node((yyvsp[(3) - (3)].nom), NULL))); 
@@ -1598,7 +1610,7 @@ yyreduce:
     break;
 
   case 9:
-#line 101 "structfe.y"
+#line 107 "structfe.y"
     { 
                                                 node_t * n = NULL; 
                                                 n = create_node("->", mergeNodes(2, (yyvsp[(1) - (3)].node), create_node((yyvsp[(3) - (3)].nom), NULL))); 
@@ -1606,13 +1618,45 @@ yyreduce:
                                                }
     break;
 
+  case 10:
+#line 115 "structfe.y"
+    {
+                if((yyvsp[(1) - (1)].node)->symb == NULL){
+                        symbole_t * s = malloc(sizeof(symbole_t));
+                        s->nom = (yyvsp[(1) - (1)].node)->name;
+                        (yyvsp[(1) - (1)].node)->symb = s;
+                }
+                //displayParam(param_list_stack);
+                //printf("=========%d-1========\n", yylineno);
+                addParam(&param_list_stack, (yyvsp[(1) - (1)].node)->symb);
+                //displayParam(param_list_stack);
+                //printf("=================\n");
+        }
+    break;
+
+  case 11:
+#line 127 "structfe.y"
+    {
+                if((yyvsp[(3) - (3)].node)->symb == NULL){ // Si le noeud n'a pas de symbole c'est qu'il s'agit d'une opération, donc on lui creer un symbole "vide"
+                        symbole_t * s = malloc(sizeof(symbole_t));
+                        s->nom = (yyvsp[(3) - (3)].node)->name;
+                        (yyvsp[(3) - (3)].node)->symb = s;
+                }
+                //displayParam(param_list_stack);
+                //printf("=========%d-2========\n", yylineno);
+                addParam(&param_list_stack, (yyvsp[(3) - (3)].node)->symb);
+                //displayParam(param_list_stack);
+                //printf("=================\n");
+        }
+    break;
+
   case 12:
-#line 114 "structfe.y"
+#line 142 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 13:
-#line 115 "structfe.y"
+#line 143 "structfe.y"
     { 
                                                 node_t * n = NULL;
                                                 n = create_node((yyvsp[(1) - (2)].nom), mergeNodes(1,(yyvsp[(2) - (2)].node)));
@@ -1622,125 +1666,128 @@ yyreduce:
     break;
 
   case 15:
-#line 125 "structfe.y"
+#line 153 "structfe.y"
     {(yyval.nom)="&";}
     break;
 
   case 16:
-#line 126 "structfe.y"
+#line 154 "structfe.y"
     {(yyval.nom)="*";}
     break;
 
   case 17:
-#line 127 "structfe.y"
+#line 155 "structfe.y"
     {(yyval.nom)="-";}
     break;
 
   case 18:
-#line 131 "structfe.y"
+#line 159 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 19:
-#line 132 "structfe.y"
+#line 160 "structfe.y"
     {(yyval.node) = create_node("*", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 20:
-#line 133 "structfe.y"
+#line 161 "structfe.y"
     {(yyval.node) = create_node("/", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 21:
-#line 137 "structfe.y"
+#line 165 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 22:
-#line 138 "structfe.y"
+#line 166 "structfe.y"
     {(yyval.node) = create_node("+", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 23:
-#line 139 "structfe.y"
+#line 167 "structfe.y"
     {(yyval.node) = create_node("-", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 24:
-#line 143 "structfe.y"
+#line 171 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 25:
-#line 144 "structfe.y"
+#line 172 "structfe.y"
     {(yyval.node) = create_node("<", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 26:
-#line 145 "structfe.y"
+#line 173 "structfe.y"
     {(yyval.node) = create_node(">", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 27:
-#line 146 "structfe.y"
+#line 174 "structfe.y"
     {(yyval.node) = create_node("<=", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 28:
-#line 147 "structfe.y"
+#line 175 "structfe.y"
     {(yyval.node) = create_node(">=", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 29:
-#line 151 "structfe.y"
+#line 179 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 30:
-#line 152 "structfe.y"
+#line 180 "structfe.y"
     {(yyval.node) = create_node("==", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 31:
-#line 153 "structfe.y"
+#line 181 "structfe.y"
     {(yyval.node) = create_node("!=", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 32:
-#line 157 "structfe.y"
+#line 185 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 33:
-#line 158 "structfe.y"
+#line 186 "structfe.y"
     {(yyval.node) = create_node("&&", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 34:
-#line 162 "structfe.y"
+#line 190 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 35:
-#line 163 "structfe.y"
+#line 191 "structfe.y"
     {(yyval.node) = create_node("||", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 36:
-#line 167 "structfe.y"
+#line 195 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 37:
-#line 168 "structfe.y"
+#line 196 "structfe.y"
     {
                 (yyval.node) = create_node("=", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));
         }
     break;
 
   case 38:
-#line 174 "structfe.y"
-    {
+#line 202 "structfe.y"
+    {       
+                                                        printf("la, je declare %s\n", (yyvsp[(2) - (3)].nom));
+                                                        print_table();
+                                                        //print_complete_table();
                                                         if((yyvsp[(1) - (3)].type) == VOID_){
                                                                 printf("%sLigne %d, vous ne pouvez pas déclarer une variable de type void.\n", ERROR, yylineno);
                                                                 exit(1);
@@ -1750,18 +1797,27 @@ yyreduce:
                                                         if(stack_head == NULL){
                                                                 table_t *table = nouvelle_table(); push(table); // Si la pile est vide on l'initialise
                                                         }
-                                                        while(stack_head != NULL){
-                                                                if(stack_head->symbole != NULL){
-                                                                s = rechercher(stack_head->symbole, (yyvsp[(2) - (3)].nom));
-                                                                if(s != NULL)
-                                                                        break;
+                                                        table_t * current = stack_head;
+                                                        while(current  != NULL){ // je vérifie si la variable a deja été declaré
+                                                                if(current ->symbole != NULL){
+                                                                        s = rechercher(current ->symbole, (yyvsp[(2) - (3)].nom));
+                                                                        if(s != NULL)
+                                                                                break;
                                                                 }
-                                                                stack_head = stack_head->preced;
+                                                                current  = current ->preced;
                                                         }
+                                                        print_table();
+                                                        symbole_t * s2 = NULL;
+                                                        if(stack_head != NULL)
+                                                                s2 = rechercherStack(stack_head->preced->symbole->param_list, (yyvsp[(2) - (3)].nom)); // Je vérifie aussi s'il existe dans les parametres des symboles de la fonction
+
                                                         if((s != NULL) && (stack_head->symbole == pile->symbole) && (stack_head->preced == pile->preced)){
                                                                 printf("%sLigne %d, la variable '%s' a déjà été déclarée.\n", ERROR, yylineno, (yyvsp[(2) - (3)].nom));
                                                                 exit(1);
-                                                        } else {
+                                                        } else if (s2 != NULL) {
+                                                                printf("%sLigne %d, vous ne pouvez pas déclarer %s car elle est défini en parametre de fonction.\n", ERROR, yylineno, (yyvsp[(2) - (3)].nom));
+                                                                exit(1);
+                                                         }else {
                                                                 if(s != NULL)
                                                                         printf("%sLigne %d, la variable '%s' en masque une autre\n", WARNING, yylineno, (yyvsp[(2) - (3)].nom));
                                                                 table_t * t = *top(); // Le symbole n'existe pas, il faut le définir
@@ -1770,7 +1826,7 @@ yyreduce:
                                                                         s->ts = FONCTION_;
                                                                         if(param_list_stack != NULL){ // S'il a des paramètres, on les sauvegardes
                                                                                 s->param_list = copyParamList(param_list_stack);
-                                                                                displayParam(s->param_list);
+                                                                                //displayParam(s->param_list);
                                                                                 clean_param_list_stack();
                                                                         }
                                                                         switch((yyvsp[(1) - (3)].type)){
@@ -1788,12 +1844,12 @@ yyreduce:
                                                                 pos += s->taille;
                                                         }
                                                         //print_table();
-                                                        print_complete_table();
+                                                        //print_complete_table();
                                                 }
     break;
 
   case 40:
-#line 228 "structfe.y"
+#line 268 "structfe.y"
     {       
                                         switch((yyvsp[(2) - (2)].type)){
                                                 case INT_: (yyval.type) = EXTERN_INT_; break;
@@ -1804,27 +1860,27 @@ yyreduce:
     break;
 
   case 41:
-#line 235 "structfe.y"
+#line 275 "structfe.y"
     {(yyval.type) = (yyvsp[(1) - (1)].type);}
     break;
 
   case 42:
-#line 239 "structfe.y"
+#line 279 "structfe.y"
     { (yyval.type) = VOID_ ;}
     break;
 
   case 43:
-#line 240 "structfe.y"
+#line 280 "structfe.y"
     { (yyval.type) = INT_ ;}
     break;
 
   case 44:
-#line 241 "structfe.y"
+#line 281 "structfe.y"
     {(yyval.type) = STRUCT_ ;}
     break;
 
   case 51:
-#line 260 "structfe.y"
+#line 300 "structfe.y"
     { 
                 char p[strlen((yyvsp[(2) - (2)].nom))+2]; 
                 sprintf(p, "*%s", (yyvsp[(2) - (2)].nom)); 
@@ -1834,48 +1890,52 @@ yyreduce:
     break;
 
   case 52:
-#line 266 "structfe.y"
+#line 306 "structfe.y"
     { (yyval.nom) = (yyvsp[(1) - (1)].nom); }
     break;
 
   case 53:
-#line 270 "structfe.y"
+#line 310 "structfe.y"
     {(yyval.nom) = (yyvsp[(1) - (1)].nom);}
     break;
 
   case 54:
-#line 271 "structfe.y"
+#line 311 "structfe.y"
     {(yyval.nom) = (yyvsp[(2) - (3)].nom);}
     break;
 
   case 55:
-#line 272 "structfe.y"
+#line 312 "structfe.y"
     {
+                //clean_param_list_stack();
+                printf("finito\n");
                 (yyval.nom) = (yyvsp[(1) - (4)].nom);
         }
     break;
 
   case 56:
-#line 275 "structfe.y"
+#line 317 "structfe.y"
     {(yyval.nom) = (yyvsp[(1) - (3)].nom);}
     break;
 
   case 57:
-#line 279 "structfe.y"
-    {        
+#line 321 "structfe.y"
+    {
                 addParam(&param_list_stack, (yyvsp[(1) - (1)].symb));
+                //displayParam(param_list_stack);
         }
     break;
 
   case 58:
-#line 282 "structfe.y"
+#line 325 "structfe.y"
     {
                 addParam(&param_list_stack, (yyvsp[(3) - (3)].symb));
+                //displayParam(param_list_stack);
         }
     break;
 
   case 59:
-#line 288 "structfe.y"
+#line 332 "structfe.y"
     {
                 char * nom = (yyvsp[(2) - (2)].nom); // Je sauvegarde les informations
                 symbole_t * s;
@@ -1893,47 +1953,47 @@ yyreduce:
     break;
 
   case 60:
-#line 305 "structfe.y"
+#line 349 "structfe.y"
     {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node_list));}
     break;
 
   case 61:
-#line 306 "structfe.y"
+#line 350 "structfe.y"
     {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node));}
     break;
 
   case 62:
-#line 307 "structfe.y"
+#line 351 "structfe.y"
     {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node));}
     break;
 
   case 63:
-#line 308 "structfe.y"
+#line 352 "structfe.y"
     {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node));}
     break;
 
   case 64:
-#line 309 "structfe.y"
+#line 353 "structfe.y"
     {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node));}
     break;
 
   case 66:
-#line 314 "structfe.y"
+#line 358 "structfe.y"
     {(yyval.node_list) = (yyvsp[(2) - (3)].node_list);}
     break;
 
   case 68:
-#line 316 "structfe.y"
+#line 360 "structfe.y"
     {(yyval.node_list) = (yyvsp[(3) - (4)].node_list);}
     break;
 
   case 69:
-#line 319 "structfe.y"
+#line 363 "structfe.y"
     {table_t *table = nouvelle_table(); push(table);}
     break;
 
   case 70:
-#line 320 "structfe.y"
+#line 364 "structfe.y"
     {
                 /*table_t *table = pop(); 
                 detruire_table(&table);
@@ -1945,38 +2005,28 @@ yyreduce:
             }
     break;
 
-  case 71:
-#line 331 "structfe.y"
-    {}
-    break;
-
-  case 72:
-#line 332 "structfe.y"
-    {;}
-    break;
-
   case 73:
-#line 336 "structfe.y"
-    {(yyval.node_list) = (yyvsp[(1) - (1)].node_list);}
+#line 380 "structfe.y"
+    { (yyval.node_list) = (yyvsp[(1) - (1)].node_list);}
     break;
 
   case 74:
-#line 337 "structfe.y"
-    { (yyval.node_list) = pushNode((yyvsp[(1) - (2)].node_list), (yyvsp[(2) - (2)].node_list)->first);}
+#line 381 "structfe.y"
+    {(yyval.node_list) = pushNode((yyvsp[(1) - (2)].node_list), (yyvsp[(2) - (2)].node_list)->first);}
     break;
 
   case 76:
-#line 342 "structfe.y"
+#line 386 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (2)].node);}
     break;
 
   case 82:
-#line 357 "structfe.y"
+#line 401 "structfe.y"
     {(yyval.node) = (yyvsp[(2) - (3)].node); /*$$ = create_node("jump_statement", mergeNodes(3,create_node("return", NULL), $2, create_node(";", NULL)));*/}
     break;
 
   case 83:
-#line 360 "structfe.y"
+#line 404 "structfe.y"
     {
                                 table_t *table = pop(); 
                                 detruire_table(&table);
@@ -1989,85 +2039,97 @@ yyreduce:
     break;
 
   case 84:
-#line 371 "structfe.y"
+#line 415 "structfe.y"
     {
                 nodes_list_t * arbre = NULL;
                 if((yyvsp[(1) - (1)].node) != NULL){
                         (yyval.node) = create_node("prog", mergeNodes(1, (yyvsp[(1) - (1)].node))); 
                         arbre = mergeNodes(1, (yyvsp[(1) - (1)].node));
+                        
                         print_tree(arbre, "");
                 }
         }
     break;
 
   case 85:
-#line 379 "structfe.y"
+#line 424 "structfe.y"
     {
                 nodes_list_t * arbre = NULL;
                 if((yyvsp[(2) - (2)].node) != NULL){
                         (yyval.node) = create_node("prog", mergeNodes(1, (yyvsp[(2) - (2)].node)));
                         arbre = mergeNodes(1, (yyvsp[(2) - (2)].node));
+                        
                         print_tree(arbre, "");
                 }
         }
     break;
 
   case 86:
-#line 390 "structfe.y"
+#line 436 "structfe.y"
     { (yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 87:
-#line 391 "structfe.y"
+#line 437 "structfe.y"
     { (yyval.node) = NULL;}
     break;
 
   case 88:
-#line 395 "structfe.y"
-    { 
-                                                                        symbole_t *s = NULL;
-                                                                        table_t * stack_head = pile;
-                                                                        if(stack_head == NULL){
-                                                                                table_t *table = nouvelle_table(); push(table); // Si la pile est vide on l'initialise
-                                                                        }
-                                                                        while(stack_head != NULL){
-                                                                                if(stack_head->symbole != NULL){
-                                                                                s = rechercher(stack_head->symbole, (yyvsp[(2) - (3)].nom));
-                                                                                if(s != NULL)
-                                                                                        break;
-                                                                                }
-                                                                                stack_head = stack_head->preced;
-                                                                        }
-                                                                        if(s == NULL) {
-                                                                                if(s != NULL)
-                                                                                        printf("%sLigne %d, la fonction '%s' en masque une autre\n", WARNING, yylineno, (yyvsp[(2) - (3)].nom));
-                                                                                table_t * t = *top();
-                                                                                s = ajouter(&(t->symbole), (yyvsp[(2) - (3)].nom));
-                                                                                s->type = (yyvsp[(1) - (3)].type);
-                                                                                s->ts = FONCTION_;
-                                                                                s->taille = sizeof((yyvsp[(1) - (3)].type));
-                                                                                s->position = pos;
-                                                                                s->suivant = NULL;
-                                                                                pos += s->taille;
-                                                                                if(param_list_stack != NULL){ // S'il a des paramètres, on les sauvegardes
-                                                                                        s->param_list = copyParamList(param_list_stack);
-                                                                                        displayParam(s->param_list);
-                                                                                        clean_param_list_stack();
-                                                                                }
-                                                                        }
-                                                                        //print_table();
-                                                                        print_complete_table();
-                                                                        if(((yyvsp[(2) - (3)].nom))[0] == '*')
-                                                                                (yyvsp[(2) - (3)].nom)++;
-                                                                        node_t * n  = create_node((yyvsp[(2) - (3)].nom),(yyvsp[(3) - (3)].node_list));
-                                                                        n->symb = s;
-                                                                        (yyval.node) = n; 
-                                                               }
+#line 441 "structfe.y"
+    {
+                
+                symbole_t *s = NULL;
+                table_t * stack_head = pile;
+                if(stack_head == NULL){
+                        table_t *table = nouvelle_table(); push(table); // Si la pile est vide on l'initialise
+                }
+                while(stack_head != NULL){
+                        if(stack_head->symbole != NULL){
+                        s = rechercher(stack_head->symbole, (yyvsp[(2) - (2)].nom));
+                        if(s != NULL)
+                                break;
+                        }
+                        stack_head = stack_head->preced;
+                }
+                if(s == NULL) {
+                        if(s != NULL)
+                                printf("%sLigne %d, la fonction '%s' en masque une autre\n", WARNING, yylineno, (yyvsp[(2) - (2)].nom));
+                        table_t * t = *top();
+                        s = ajouter(&(t->symbole), (yyvsp[(2) - (2)].nom));
+                        s->type = (yyvsp[(1) - (2)].type);
+                        s->ts = FONCTION_;
+                        s->taille = sizeof((yyvsp[(1) - (2)].type));
+                        s->position = pos;
+                        s->suivant = NULL;
+                        pos += s->taille;
+                        //displayParam(param_list_stack);  
+                }
+                //print_table();
+                //print_complete_table();
+                if(((yyvsp[(2) - (2)].nom))[0] == '*')
+                        (yyvsp[(2) - (2)].nom)++;
+                
+                s->param_list = copyParamList(param_list_stack);
+                (yyval.symb) = s;
+                displayParam(s->param_list);
+                clean_param_list_stack();
+                print_table();
+        }
+    break;
+
+  case 89:
+#line 482 "structfe.y"
+    {
+                                                clean_param_list_stack();              
+                                                node_t * n  = create_node(getSymbole((yyvsp[(1) - (2)].symb),-1)->nom,(yyvsp[(2) - (2)].node_list));
+                                                n->symb = (yyvsp[(1) - (2)].symb);
+                                                (yyval.node) = n; 
+                                        }
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 2071 "y.tab.c"
+#line 2133 "y.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2281,7 +2343,7 @@ yyreturn:
 }
 
 
-#line 436 "structfe.y"
+#line 490 "structfe.y"
 
         int yyerror(char *s){ // fonction pour détecter une erreur
                 fprintf(stderr, "%s\n", s);
@@ -2541,20 +2603,7 @@ yyreturn:
                 }
         }
 
-        void clean_param_list_stack(){
-                param_list_t ** stack = &param_list_stack;
-                while(*stack != NULL){
-                        param_list_t * current = *stack;
-                        /*if((*stack)->symbole->nom != NULL)
-                                free((*stack)->symbole->nom);*/
-                        if((*stack)->symbole != NULL)
-                                free((*stack)->symbole);
-                        *stack = (*stack)->suivant;
-                        if(current != NULL)
-                                free(current);
-                }
-                *stack = NULL;
-        }
+        
 
         param_list_t * copyParamList(param_list_t * stack){
                 if(stack == NULL){
@@ -2569,12 +2618,71 @@ yyreturn:
                 return p;
         }
 
+        symbole_t * rechercherStack(param_list_t * st, char * nom){
+                param_list_t * p = st;
+                while(p != NULL){
+                        if(strcmp(nom, p->symbole->nom) == 0)
+                                return p->symbole;
+                        p = p->suivant;
+                }
+                return NULL;
+        }
+
         void displayParam(param_list_t * p){
                 printf("Liste courante des paramètres:\n");
                 while(p != NULL){
                         printf("+ %s, est de type %d et isPtr vaut %d\n",p->symbole->nom, p->symbole->type ,p->symbole->isPtr);
                         p = p->suivant;
                 }
+        }
+
+        void clean_param_list_stack(){
+                param_list_t ** stack = &param_list_stack;
+                //param_list_t * current = *stack;
+                while (*stack != NULL)
+                {       
+                        //current = NULL;
+                        *stack = (*stack)->suivant;
+                }
+                /*printf("=========%d-3========\n", yylineno);
+                
+                displayParam(param_list_stack);
+                printf("=================\n");*/
+        }
+        int paramLength(param_list_t * p){
+                param_list_t * current;
+                int count;
+                current = p;
+                count = 0;
+                while(current != NULL){
+                        count++;
+                        current = current->suivant;
+                }
+                return count;
+        }
+
+        symbole_t * getSymbole(symbole_t * s, int n){
+                symbole_t * current = s;
+                if(n < 0){
+                        while(current->suivant != NULL){
+                                current = current->suivant;
+                        }
+                        return current;
+                } else{
+                        int count = 0;
+                        while(count < n){
+                        if(current == NULL){
+                                printf("getSymbole : out of range\n");
+                                exit(1);
+                        }
+                        current = current->suivant;
+                        }
+                }
+                if(current == NULL){
+                        printf("getSymbole : out of range\n");
+                        exit(1);
+                }
+                return current;
         }
 
         int main(){

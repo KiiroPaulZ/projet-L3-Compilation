@@ -86,3 +86,6 @@ node_t * create_node(char * name, nodes_list_t * nodesList);
 nodes_list_t * mergeNodes(int nbPara, ...);
 void outputTree(node_t * treePtr, int spaces);
 nodes_list_t * pushNode(nodes_list_t * t, node_t * n);
+void print_node(node_t * n);
+void print_tree(nodes_list_t * n, char * space);
+void getLeaves(node_t * n, node_t * t);

@@ -1,31 +1,26 @@
-extern int * printd(int i);
+extern int printd(int i);
 
+/* int (*fact) (int no); */
 
-int foo(int i){
-  return i;
+int f(int n){
+  return n;
 }
 
-int * foo2(int * k, int o){
-  return k;
+int * foo(int * k, int m){
+  return k - m;
 }
 
-int foo3(){
-  return i;
-}
-
-void main(){
+int main(int a){
   int i;
   int j;
-  i = 1;
+  i = a + b;
   j = 2;
-  printd(i+j);
-  printd(45000+j);
-  printd(i+123);
-  printd(45000+123);
-  printd(i+(j+0));
-  printd((i+0)+j);
-  printd((i+0)+(j+0));
-  printd((i+0)+123);
-  printd(45000+(j+0));
+  /*fact = &f;
+  (*fact)(1);*/
+  printd(j);
+  printd(i);
+  foo(i, b);
+  printd(i);
+  foo(a, j);
   return 0;
 }

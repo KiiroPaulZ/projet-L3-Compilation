@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "table_symb.h": "c",
-        "iterator": "c"
+        "iterator": "c",
+        "algorithm": "c"
     }
 }
