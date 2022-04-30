@@ -64,6 +64,7 @@ primary_expression
                         node_t * n = NULL;
                         table_t * stack_head = pile;
                         s = rechercher_global(stack_head, $1);
+                        //printf("On a cherché %s, et s vaut %d\n", $1, s != NULL);
                         n = create_node($1, NULL);
                         n->symb = s;
                         $$ = n;
@@ -147,7 +148,7 @@ unary_expression
                                                 //n->type = $2->type;
                                                 $$ = n;
                                           }
-        | SIZEOF unary_expression
+        | SIZEOF unary_expression {$$ = create_node("SIZEOF", mergeNodes(1,$2));}
         ;
 
 unary_operator
@@ -352,7 +353,7 @@ parameter_declaration
         ;
 
 statement
-        : compound_statement {$$ = mergeNodes(1, $1);}
+        : compound_statement {$$ = $1;}
         | expression_statement {$$ = mergeNodes(1, $1);}
         | selection_statement {$$ = mergeNodes(1, $1);}
         | iteration_statement {$$ = mergeNodes(1, $1);}
@@ -360,7 +361,7 @@ statement
         ;
 
 compound_statement
-        : ACCOO ACCOF {$$ = NULL;}
+        : '{' '}' {$$ = NULL;}
         | ACCOO statement_list ACCOF {$$ = $2;}
         | ACCOO declaration_list ACCOF {$$ = NULL;}
         | ACCOO declaration_list statement_list ACCOF {$$ = $3;}
@@ -384,7 +385,7 @@ declaration_list
 
 statement_list
         : statement { $$ = $1;}
-        | statement_list statement {$$ = pushNode($1, $2->first);}
+        | statement_list statement {$$ = concatNodes($1, $2);}
         ;
 
 expression_statement
@@ -393,21 +394,22 @@ expression_statement
         ;
 
 selection_statement
-        : IF '(' expression ')' statement %prec ELSE_PRIORITY
-        | IF '(' expression ')' statement ELSE statement %prec ELSE
+        : IF '(' expression ')' statement %prec ELSE_PRIORITY {$$ = create_node("IF", concatNodes(mergeNodes(1, $3), $5));}
+        | IF '(' expression ')' statement ELSE statement %prec ELSE {$$ = create_node("IF-ELSE", concatNodes(mergeNodes(1, $3), concatNodes($5, $7)));}
         ;
 
 iteration_statement
-        : WHILE '(' expression ')' statement
-        | FOR '(' expression_statement expression_statement expression ')' statement
+        : WHILE '(' expression ')' statement { $$ = create_node("WHILE", concatNodes(mergeNodes(1, $3), $5)); }
+        | FOR '(' expression_statement expression_statement expression ')' statement {$$ = create_node("FOR", concatNodes( mergeNodes(3, $3, $4, $5), $7));}
         ;
 
 jump_statement
-        : RETURN ';' 
-        | RETURN expression ';' {$$ = $2; /*$$ = create_node("jump_statement", mergeNodes(3,create_node("return", NULL), $2, create_node(";", NULL)));*/}
+        : RETURN ';' { $$ = create_node("RETURN", NULL);}
+        | RETURN expression ';' {$$ = create_node("RETURN", mergeNodes(1, $2)); /*$$ = create_node("jump_statement", mergeNodes(3,create_node("return", NULL), $2, create_node(";", NULL)));*/}
         ;
 
-program_start: program {
+program_start: program {        
+                                
                                 table_t *table = pop(); 
                                 detruire_table(&table);
                                 if((*top()) != NULL){ // autrement dit si la pile est vide    
@@ -440,7 +442,7 @@ program
 
 external_declaration
         : function_definition { $$ = $1;}
-        | declaration { $$ = NULL;}
+        | declaration { $$ = NULL;print_complete_table();}
         ;
 
 function_init
@@ -481,17 +483,18 @@ function_init
                 $$ = s;
                 displayParam(s->param_list);
                 clean_param_list_stack();
-                print_table();
+                //print_table();
         }
 
 function_definition
         :  function_init compound_statement {   
-                                                printf("affichage du compound:\n");
+                                                //printf("affichage du compound:\n");
                                                 print_tree($2, "");
                                                 clean_param_list_stack();              
                                                 node_t * n  = create_node(getSymbole($1,-1)->nom,$2);
                                                 n->symb = $1;
-                                                $$ = n; 
+                                                $$ = n;
+                                                print_complete_table();
                                         }
         ;
 
@@ -669,7 +672,7 @@ function_definition
                 for(int j = 1; j < nbPara; j++){
                         node_t * current = va_arg(ap, node_t *);
                         temp->first = current;
-                        if(j != nbPara -1){
+                        if(j != nbPara -1) {
                                 temp->next = malloc(sizeof(nodes_list_t));
                                 temp = temp->next;
                         }
@@ -835,6 +838,16 @@ function_definition
                         exit(1);
                 }
                 return current;
+        }
+
+        nodes_list_t * concatNodes(nodes_list_t * n1, nodes_list_t * n2){
+                nodes_list_t * copy = n1;
+                nodes_list_t * current = copy;
+                while(current->next != NULL){
+                        current = current->next;
+                }
+                current->next = n2;
+                return copy;
         }
 
         int main(){

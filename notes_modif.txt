@@ -2,3 +2,4 @@
       => modification du début du program pour initialiser une premiere table
       => On s'est rendu compte que le parcours se fait en analyse descendente, 
             on a ajouté un flag à la structure symbole pour vérifier s'il s'agit d'un pointeur.
+30/04 => On ne gere pas ce genre de fonction : (n*(*fact)(n-1))

@@ -16,8 +16,11 @@ int main(){
   /*fact = &f;
   (*fact)(1);*/
   printd(j);
-  printd(i);
-  foo(a, m);
+  if(a == m){
+    printd(i);
+  } else {
+    foo(a, m);
+  }
   printd(i);
   return 0;
 }

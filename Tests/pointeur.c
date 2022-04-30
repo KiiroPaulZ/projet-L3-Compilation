@@ -14,7 +14,7 @@ int main() {
    *j=6;
    printd(*j);
 
-   *j=*j+(*i)++; /* le langage ne reconnait pas ++ */
+   /**j=*j+(*i)++; /* le langage ne reconnait pas ++ */
    printd(*j);
    return 0;
 }
