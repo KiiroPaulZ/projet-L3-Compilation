@@ -502,15 +502,15 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    62,    62,    72,    73,    77,    78,    87,   104,   109,
-     117,   129,   144,   145,   151,   155,   156,   157,   161,   162,
-     163,   167,   168,   169,   173,   174,   175,   176,   177,   181,
-     182,   183,   187,   188,   192,   193,   197,   198,   204,   272,
-     276,   283,   287,   288,   289,   293,   294,   295,   299,   300,
-     304,   308,   314,   318,   319,   320,   324,   328,   332,   339,
-     356,   357,   358,   359,   360,   364,   365,   366,   367,   370,
-     371,   382,   383,   387,   388,   392,   393,   397,   398,   402,
-     403,   407,   408,   411,   423,   432,   444,   445,   449,   490
+       0,    62,    62,    71,    74,    81,    84,    94,   108,   114,
+     123,   133,   145,   146,   153,   160,   161,   162,   166,   167,
+     168,   172,   173,   174,   178,   179,   180,   181,   182,   186,
+     187,   188,   192,   193,   197,   198,   202,   203,   209,   276,
+     280,   287,   291,   292,   293,   297,   298,   299,   303,   304,
+     308,   312,   318,   322,   323,   324,   325,   329,   333,   340,
+     358,   359,   360,   361,   362,   366,   367,   368,   369,   372,
+     373,   386,   387,   391,   392,   396,   397,   401,   402,   406,
+     407,   411,   412,   415,   427,   436,   448,   449,   453,   490
 };
 #endif
 
@@ -1541,37 +1541,44 @@ yyreduce:
     {
         case 2:
 #line 62 "structfe.y"
-    {
+    { //printf("lettre a\n");
                         symbole_t * s = NULL;
                         node_t * n = NULL;
                         table_t * stack_head = pile;
-                        s = rechercher_global(stack_head, (yyvsp[(1) - (1)].nom));
-                        //printf("On a cherché %s, et s vaut %d\n", $1, s != NULL);
-                        n = create_node((yyvsp[(1) - (1)].nom), NULL);
+                        s = rechercher_global(stack_head, (yyvsp[(1) - (1)].nom)); // Recherche de s dans dans la table
+                        n = create_node((yyvsp[(1) - (1)].nom), NULL); // On crée un noeud auquel on associe le symbole
                         n->symb = s;
                         (yyval.node) = n;
                       }
     break;
 
   case 3:
-#line 72 "structfe.y"
-    { node_t * n = NULL; n = create_node((yyvsp[(1) - (1)].val), NULL); /*n->type = INT_;*/ (yyval.node) = n; }
+#line 71 "structfe.y"
+    {    //printf("lettre b\n");
+                        node_t * n = NULL; n = create_node((yyvsp[(1) - (1)].val), NULL); /*n->type = INT_;*/ (yyval.node) = n; 
+                   }
     break;
 
   case 4:
-#line 73 "structfe.y"
-    { (yyval.node) = (yyvsp[(2) - (3)].node); }
+#line 74 "structfe.y"
+    { 
+                        //printf("lettre c\n");
+                        (yyval.node) = (yyvsp[(2) - (3)].node); 
+                }
     break;
 
   case 5:
-#line 77 "structfe.y"
-    { (yyval.node) = (yyvsp[(1) - (1)].node); }
+#line 81 "structfe.y"
+    { //printf("lettre d\n");;
+                (yyval.node) = (yyvsp[(1) - (1)].node); 
+        }
     break;
 
   case 6:
-#line 78 "structfe.y"
-    { 
-                if((yyvsp[(1) - (3)].node)->symb != NULL && (yyvsp[(1) - (3)].node)->symb->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength((yyvsp[(1) - (3)].node)->symb->param_list))){
+#line 84 "structfe.y"
+    {
+                //printf("lettre e\n");
+                if((yyvsp[(1) - (3)].node)->symb != NULL && (yyvsp[(1) - (3)].node)->symb->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength((yyvsp[(1) - (3)].node)->symb->param_list))){ // Verification s'il s'agit bien d'un appel de fonction et si son nombre de paramètre correspond
                         (yyval.node) = (yyvsp[(1) - (3)].node);
                 } else {
                         clean_param_list_stack();
@@ -1582,13 +1589,10 @@ yyreduce:
     break;
 
   case 7:
-#line 87 "structfe.y"
+#line 94 "structfe.y"
     {
+                //printf("lettre f\n");
                 // S'il s'agit d'une fonction, qu'il a un symbole associé et que la liste des parametres correspond à la liste de parametres définie initialement
-                //displayParam(param_list_stack);
-                //displayParam($1->symb->param_list);
-                //printf("%d <--\n", paramLength(param_list_stack));
-                //printf("1: %d, 2: %d\n", paramLength(param_list_stack), paramLength($1->symb->param_list));
                 if((yyvsp[(1) - (4)].node)->symb != NULL && (yyvsp[(1) - (4)].node)->symb->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength((yyvsp[(1) - (4)].node)->symb->param_list))){
                         clean_param_list_stack(); // Après chaque utilisation il faut penser à clean la pile de parametre globale
                         //print_node($1);
@@ -1603,8 +1607,9 @@ yyreduce:
     break;
 
   case 8:
-#line 104 "structfe.y"
+#line 108 "structfe.y"
     { 
+                                                //printf("lettre g\n");
                                                 node_t * n = NULL; 
                                                 n = create_node(".", mergeNodes(2, (yyvsp[(1) - (3)].node), create_node((yyvsp[(3) - (3)].nom), NULL))); 
                                                 (yyval.node) = n;
@@ -1612,8 +1617,9 @@ yyreduce:
     break;
 
   case 9:
-#line 109 "structfe.y"
+#line 114 "structfe.y"
     { 
+                //printf("lettre h\n");
                                                 node_t * n = NULL; 
                                                 n = create_node("->", mergeNodes(2, (yyvsp[(1) - (3)].node), create_node((yyvsp[(3) - (3)].nom), NULL))); 
                                                 (yyval.node) = n; 
@@ -1621,45 +1627,41 @@ yyreduce:
     break;
 
   case 10:
-#line 117 "structfe.y"
+#line 123 "structfe.y"
     {
+                // On sauvegarde des informations pour le paramètre dans la ts et on l'ajoute à la pile des paramètres courants
+                //printf("lettre i\n");
                 if((yyvsp[(1) - (1)].node)->symb == NULL){
                         symbole_t * s = malloc(sizeof(symbole_t));
                         s->nom = (yyvsp[(1) - (1)].node)->name;
                         (yyvsp[(1) - (1)].node)->symb = s;
                 }
-                //displayParam(param_list_stack);
-                //printf("=========%d-1========\n", yylineno);
                 addParam(&param_list_stack, (yyvsp[(1) - (1)].node)->symb);
-                //displayParam(param_list_stack);
-                //printf("=================\n");
         }
     break;
 
   case 11:
-#line 129 "structfe.y"
+#line 133 "structfe.y"
     {
+                //printf("lettre j\n");
                 if((yyvsp[(3) - (3)].node)->symb == NULL){ // Si le noeud n'a pas de symbole c'est qu'il s'agit d'une opération, donc on lui creer un symbole "vide"
                         symbole_t * s = malloc(sizeof(symbole_t));
                         s->nom = (yyvsp[(3) - (3)].node)->name;
                         (yyvsp[(3) - (3)].node)->symb = s;
                 }
-                //displayParam(param_list_stack);
-                //printf("=========%d-2========\n", yylineno);
                 addParam(&param_list_stack, (yyvsp[(3) - (3)].node)->symb);
-                //displayParam(param_list_stack);
-                //printf("=================\n");
         }
     break;
 
   case 12:
-#line 144 "structfe.y"
+#line 145 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 13:
-#line 145 "structfe.y"
+#line 146 "structfe.y"
     { 
+                                                //printf("lettre k\n");
                                                 node_t * n = NULL;
                                                 n = create_node((yyvsp[(1) - (2)].nom), mergeNodes(1,(yyvsp[(2) - (2)].node)));
                                                 //n->type = $2->type;
@@ -1668,155 +1670,159 @@ yyreduce:
     break;
 
   case 14:
-#line 151 "structfe.y"
-    {(yyval.node) = create_node("SIZEOF", mergeNodes(1,(yyvsp[(2) - (2)].node)));}
+#line 153 "structfe.y"
+    {
+                //printf("lettre l\n");
+                (yyval.node) = create_node("SIZEOF", mergeNodes(1,(yyvsp[(2) - (2)].node)));
+        }
     break;
 
   case 15:
-#line 155 "structfe.y"
+#line 160 "structfe.y"
     {(yyval.nom)="&";}
     break;
 
   case 16:
-#line 156 "structfe.y"
+#line 161 "structfe.y"
     {(yyval.nom)="*";}
     break;
 
   case 17:
-#line 157 "structfe.y"
+#line 162 "structfe.y"
     {(yyval.nom)="-";}
     break;
 
   case 18:
-#line 161 "structfe.y"
+#line 166 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 19:
-#line 162 "structfe.y"
+#line 167 "structfe.y"
     {(yyval.node) = create_node("*", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 20:
-#line 163 "structfe.y"
+#line 168 "structfe.y"
     {(yyval.node) = create_node("/", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 21:
-#line 167 "structfe.y"
+#line 172 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 22:
-#line 168 "structfe.y"
+#line 173 "structfe.y"
     {(yyval.node) = create_node("+", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 23:
-#line 169 "structfe.y"
+#line 174 "structfe.y"
     {(yyval.node) = create_node("-", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 24:
-#line 173 "structfe.y"
+#line 178 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 25:
-#line 174 "structfe.y"
+#line 179 "structfe.y"
     {(yyval.node) = create_node("<", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 26:
-#line 175 "structfe.y"
+#line 180 "structfe.y"
     {(yyval.node) = create_node(">", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 27:
-#line 176 "structfe.y"
+#line 181 "structfe.y"
     {(yyval.node) = create_node("<=", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 28:
-#line 177 "structfe.y"
+#line 182 "structfe.y"
     {(yyval.node) = create_node(">=", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 29:
-#line 181 "structfe.y"
+#line 186 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 30:
-#line 182 "structfe.y"
+#line 187 "structfe.y"
     {(yyval.node) = create_node("==", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 31:
-#line 183 "structfe.y"
+#line 188 "structfe.y"
     {(yyval.node) = create_node("!=", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
   case 32:
-#line 187 "structfe.y"
-    {(yyval.node) = (yyvsp[(1) - (1)].node);}
-    break;
-
-  case 33:
-#line 188 "structfe.y"
-    {(yyval.node) = create_node("&&", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
-    break;
-
-  case 34:
 #line 192 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
-  case 35:
+  case 33:
 #line 193 "structfe.y"
-    {(yyval.node) = create_node("||", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
+    {(yyval.node) = create_node("&&", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
     break;
 
-  case 36:
+  case 34:
 #line 197 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
-  case 37:
+  case 35:
 #line 198 "structfe.y"
+    {(yyval.node) = create_node("||", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
+    break;
+
+  case 36:
+#line 202 "structfe.y"
+    {(yyval.node) = (yyvsp[(1) - (1)].node);}
+    break;
+
+  case 37:
+#line 203 "structfe.y"
     {
                 (yyval.node) = create_node("=", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));
         }
     break;
 
   case 38:
-#line 204 "structfe.y"
+#line 209 "structfe.y"
     {       
-                                                        
-                                                        //print_table();
-                                                        //print_complete_table();
+                                                        //printf("lettre m\n");
                                                         if((yyvsp[(1) - (3)].type) == VOID_){
                                                                 printf("%sLigne %d, vous ne pouvez pas déclarer une variable de type void.\n", ERROR, yylineno);
                                                                 exit(1);
                                                         }
+
                                                         symbole_t *s = NULL;
                                                         table_t * stack_head = pile;
+                                                        
                                                         if(stack_head == NULL){
+                                                                //printf("l%d stackhead null\n", yylineno);
                                                                 table_t *table = nouvelle_table(); push(table); // Si la pile est vide on l'initialise
                                                         }
+
                                                         table_t * current = stack_head;
 
                                                         if(current != NULL)
                                                                 s = rechercher(current->symbole, (yyvsp[(2) - (3)].nom));
 
-                                                        //print_table();
                                                         symbole_t * s2 = NULL;
-                                                        if(stack_head != NULL)
-                                                                s2 = rechercherStack((getSymbole(stack_head->preced->symbole,-1))->param_list, (yyvsp[(2) - (3)].nom)); // Je vérifie aussi s'il existe dans les parametres des symboles de la fonction
 
+                                                        if(stack_head != NULL && stack_head->symbole != NULL && stack_head->preced->symbole != NULL)
+                                                                s2 = rechercherStack((getSymbole(stack_head->preced->symbole,-1))->param_list, (yyvsp[(2) - (3)].nom)); // Je vérifie aussi si ce que je déclare n'a pas le meme nom qu'un parametre dans la définition de fonction courante
                                                         if(s != NULL){
                                                                 printf("%sLigne %d, la variable '%s' a déjà été déclarée.\n", ERROR, yylineno, (yyvsp[(2) - (3)].nom));
-                                                                print_table();
+                                                                //print_table();
                                                                 exit(1);
                                                         } else if (s2 != NULL) {
                                                                 print_complete_table();
@@ -1856,14 +1862,12 @@ yyreduce:
                                                                 s->suivant = NULL;
                                                                 pos += s->taille;
                                                         }
-                                                        //print_table();
-                                                        //print_complete_table();
                                                 }
     break;
 
   case 40:
-#line 276 "structfe.y"
-    {       
+#line 280 "structfe.y"
+    {       //printf("lettre n\n");
                                         switch((yyvsp[(2) - (2)].type)){
                                                 case INT_: (yyval.type) = EXTERN_INT_; break;
                                                 case VOID_: (yyval.type) = EXTERN_VOID_; break;
@@ -1873,82 +1877,85 @@ yyreduce:
     break;
 
   case 41:
-#line 283 "structfe.y"
+#line 287 "structfe.y"
     {(yyval.type) = (yyvsp[(1) - (1)].type);}
     break;
 
   case 42:
-#line 287 "structfe.y"
+#line 291 "structfe.y"
     { (yyval.type) = VOID_ ;}
     break;
 
   case 43:
-#line 288 "structfe.y"
+#line 292 "structfe.y"
     { (yyval.type) = INT_ ;}
     break;
 
   case 44:
-#line 289 "structfe.y"
+#line 293 "structfe.y"
     {(yyval.type) = STRUCT_ ;}
     break;
 
-  case 51:
+  case 50:
 #line 308 "structfe.y"
+    {}
+    break;
+
+  case 51:
+#line 312 "structfe.y"
     { 
+                //printf("lettre o\n");
                 char p[strlen((yyvsp[(2) - (2)].nom))+2]; 
                 sprintf(p, "*%s", (yyvsp[(2) - (2)].nom)); 
-                //printf("p : %s\n",p);
                 (yyval.nom) = strdup(p);
         }
     break;
 
   case 52:
-#line 314 "structfe.y"
+#line 318 "structfe.y"
     { (yyval.nom) = (yyvsp[(1) - (1)].nom); }
     break;
 
   case 53:
-#line 318 "structfe.y"
+#line 322 "structfe.y"
     {(yyval.nom) = (yyvsp[(1) - (1)].nom);}
     break;
 
   case 54:
-#line 319 "structfe.y"
+#line 323 "structfe.y"
     {(yyval.nom) = (yyvsp[(2) - (3)].nom);}
     break;
 
   case 55:
-#line 320 "structfe.y"
-    {
-                //clean_param_list_stack();
-                (yyval.nom) = (yyvsp[(1) - (4)].nom);
-        }
+#line 324 "structfe.y"
+    {(yyval.nom) = (yyvsp[(1) - (4)].nom);}
     break;
 
   case 56:
-#line 324 "structfe.y"
+#line 325 "structfe.y"
     {(yyval.nom) = (yyvsp[(1) - (3)].nom);}
     break;
 
   case 57:
-#line 328 "structfe.y"
+#line 329 "structfe.y"
     {
+                //printf("lettre r\n");
                 addParam(&param_list_stack, (yyvsp[(1) - (1)].symb));
-                //displayParam(param_list_stack);
         }
     break;
 
   case 58:
-#line 332 "structfe.y"
+#line 333 "structfe.y"
     {
+                //printf("lettre s\n");
                 addParam(&param_list_stack, (yyvsp[(3) - (3)].symb));
-                //displayParam(param_list_stack);
         }
     break;
 
   case 59:
-#line 339 "structfe.y"
+#line 340 "structfe.y"
     {
+                //printf("lettre t\n");
                 char * nom = (yyvsp[(2) - (2)].nom); // Je sauvegarde les informations
                 symbole_t * s;
                 s = malloc(sizeof(symbole_t));
@@ -1965,58 +1972,59 @@ yyreduce:
     break;
 
   case 60:
-#line 356 "structfe.y"
+#line 358 "structfe.y"
     {(yyval.node_list) = (yyvsp[(1) - (1)].node_list);}
     break;
 
   case 61:
-#line 357 "structfe.y"
-    {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node));}
-    break;
-
-  case 62:
-#line 358 "structfe.y"
-    {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node));}
-    break;
-
-  case 63:
 #line 359 "structfe.y"
     {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node));}
     break;
 
-  case 64:
+  case 62:
 #line 360 "structfe.y"
     {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node));}
     break;
 
+  case 63:
+#line 361 "structfe.y"
+    {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node));}
+    break;
+
+  case 64:
+#line 362 "structfe.y"
+    {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node));}
+    break;
+
   case 65:
-#line 364 "structfe.y"
-    {(yyval.node_list) = NULL;}
-    break;
-
-  case 66:
-#line 365 "structfe.y"
-    {(yyval.node_list) = (yyvsp[(2) - (3)].node_list);}
-    break;
-
-  case 67:
 #line 366 "structfe.y"
     {(yyval.node_list) = NULL;}
     break;
 
-  case 68:
+  case 66:
 #line 367 "structfe.y"
+    {(yyval.node_list) = (yyvsp[(2) - (3)].node_list);}
+    break;
+
+  case 67:
+#line 368 "structfe.y"
+    {(yyval.node_list) = NULL;}
+    break;
+
+  case 68:
+#line 369 "structfe.y"
     {(yyval.node_list) = (yyvsp[(3) - (4)].node_list);}
     break;
 
   case 69:
-#line 370 "structfe.y"
+#line 372 "structfe.y"
     {table_t *table = nouvelle_table(); push(table);}
     break;
 
   case 70:
-#line 371 "structfe.y"
-    {
+#line 373 "structfe.y"
+    {   /* NE PAS TOUCHER */
+                //printf("lettre w\n");
                 /*table_t *table = pop(); 
                 detruire_table(&table);
                 if((*top()) != NULL){ // autrement dit si la pile est vide    
@@ -2024,61 +2032,77 @@ yyreduce:
                 } else {
                     printf("[]\n");
                 }*/
+                /* ************* */
             }
     break;
 
-  case 73:
+  case 71:
+#line 386 "structfe.y"
+    { (yyval.node_list) = NULL; }
+    break;
+
+  case 72:
 #line 387 "structfe.y"
-    { (yyval.node_list) = (yyvsp[(1) - (1)].node_list);}
+    { (yyval.node_list) = NULL; }
+    break;
+
+  case 73:
+#line 391 "structfe.y"
+    {(yyval.node_list) = (yyvsp[(1) - (1)].node_list);}
     break;
 
   case 74:
-#line 388 "structfe.y"
-    {(yyval.node_list) = concatNodes((yyvsp[(1) - (2)].node_list), (yyvsp[(2) - (2)].node_list));}
+#line 392 "structfe.y"
+    {(yyval.node_list) = concatNodes((yyvsp[(1) - (2)].node_list), (yyvsp[(2) - (2)].node_list)); }
+    break;
+
+  case 75:
+#line 396 "structfe.y"
+    { (yyval.node) = NULL; }
     break;
 
   case 76:
-#line 393 "structfe.y"
+#line 397 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (2)].node);}
     break;
 
   case 77:
-#line 397 "structfe.y"
+#line 401 "structfe.y"
     {(yyval.node) = create_node("IF", concatNodes(mergeNodes(1, (yyvsp[(3) - (5)].node)), (yyvsp[(5) - (5)].node_list)));}
     break;
 
   case 78:
-#line 398 "structfe.y"
+#line 402 "structfe.y"
     {(yyval.node) = create_node("IF-ELSE", concatNodes(mergeNodes(1, (yyvsp[(3) - (7)].node)), concatNodes((yyvsp[(5) - (7)].node_list), (yyvsp[(7) - (7)].node_list))));}
     break;
 
   case 79:
-#line 402 "structfe.y"
-    { (yyval.node) = create_node("WHILE", concatNodes(mergeNodes(1, (yyvsp[(3) - (5)].node)), (yyvsp[(5) - (5)].node_list))); }
+#line 406 "structfe.y"
+    {(yyval.node) = create_node("WHILE", concatNodes(mergeNodes(1, (yyvsp[(3) - (5)].node)), (yyvsp[(5) - (5)].node_list))); }
     break;
 
   case 80:
-#line 403 "structfe.y"
-    {(yyval.node) = create_node("FOR", concatNodes( mergeNodes(3, (yyvsp[(3) - (7)].node), (yyvsp[(4) - (7)].node), (yyvsp[(5) - (7)].node)), (yyvsp[(7) - (7)].node_list)));}
+#line 407 "structfe.y"
+    { (yyval.node) = create_node("FOR", concatNodes( mergeNodes(3, (yyvsp[(3) - (7)].node), (yyvsp[(4) - (7)].node), (yyvsp[(5) - (7)].node)), (yyvsp[(7) - (7)].node_list))); }
     break;
 
   case 81:
-#line 407 "structfe.y"
+#line 411 "structfe.y"
     { (yyval.node) = create_node("RETURN", NULL);}
     break;
 
   case 82:
-#line 408 "structfe.y"
+#line 412 "structfe.y"
     {(yyval.node) = create_node("RETURN", mergeNodes(1, (yyvsp[(2) - (3)].node))); /*$$ = create_node("jump_statement", mergeNodes(3,create_node("return", NULL), $2, create_node(";", NULL)));*/}
     break;
 
   case 83:
-#line 411 "structfe.y"
+#line 415 "structfe.y"
     {        
-                                
+                                //Obliger de séparer le start du program car on affiche chaque AST des fonctions, donc on ne veux pas un arret prématuré
                                 table_t *table = pop(); 
                                 detruire_table(&table);
-                                if((*top()) != NULL){ // autrement dit si la pile est vide    
+                                if((*top()) != NULL){ // autrement dit, si la pile est vide    
                                         //print_table();
                                 } else {
                                         printf("[]\n");
@@ -2087,7 +2111,7 @@ yyreduce:
     break;
 
   case 84:
-#line 423 "structfe.y"
+#line 427 "structfe.y"
     {
                 nodes_list_t * arbre = NULL;
                 if((yyvsp[(1) - (1)].node) != NULL){
@@ -2100,7 +2124,7 @@ yyreduce:
     break;
 
   case 85:
-#line 432 "structfe.y"
+#line 436 "structfe.y"
     {
                 nodes_list_t * arbre = NULL;
                 if((yyvsp[(2) - (2)].node) != NULL){
@@ -2113,19 +2137,20 @@ yyreduce:
     break;
 
   case 86:
-#line 444 "structfe.y"
+#line 448 "structfe.y"
     { (yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 87:
-#line 445 "structfe.y"
-    { (yyval.node) = NULL;print_complete_table();}
+#line 449 "structfe.y"
+    { (yyval.node) = NULL;}
     break;
 
   case 88:
-#line 449 "structfe.y"
+#line 453 "structfe.y"
     {
-                
+                /* Nouvelle regle syntaxique */
+                // Il fallait pouvoir agir sur la declaration des fonctions indépendamment des paramètres de celle-ci
                 symbole_t *s = NULL;
                 table_t * stack_head = pile;
                 if(stack_head == NULL){
@@ -2149,38 +2174,32 @@ yyreduce:
                         s->taille = sizeof((yyvsp[(1) - (2)].type));
                         s->position = pos;
                         s->suivant = NULL;
-                        pos += s->taille;
-                        //displayParam(param_list_stack);  
+                        pos += s->taille; 
                 }
-                //print_table();
-                //print_complete_table();
                 if(((yyvsp[(2) - (2)].nom))[0] == '*')
                         (yyvsp[(2) - (2)].nom)++;
                 
                 s->param_list = copyParamList(param_list_stack);
                 (yyval.symb) = s;
-                displayParam(s->param_list);
                 clean_param_list_stack();
-                //print_table();
         }
     break;
 
   case 89:
 #line 490 "structfe.y"
     {   
-                                                //printf("affichage du compound:\n");
                                                 print_tree((yyvsp[(2) - (2)].node_list), "");
-                                                clean_param_list_stack();              
+                                                print_complete_table();
+                                                clean_param_list_stack(); // On nettoie la pile des paramètres par précaution
                                                 node_t * n  = create_node(getSymbole((yyvsp[(1) - (2)].symb),-1)->nom,(yyvsp[(2) - (2)].node_list));
                                                 n->symb = (yyvsp[(1) - (2)].symb);
                                                 (yyval.node) = n;
-                                                print_complete_table();
                                         }
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 2184 "y.tab.c"
+#line 2203 "y.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2394,7 +2413,7 @@ yyreturn:
 }
 
 
-#line 501 "structfe.y"
+#line 499 "structfe.y"
 
         int yyerror(char *s){ // fonction pour détecter une erreur
                 fprintf(stderr, "%s\n", s);

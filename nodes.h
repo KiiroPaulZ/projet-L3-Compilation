@@ -84,9 +84,7 @@ typedef struct nodes_list_ {
 
 node_t * create_node(char * name, nodes_list_t * nodesList);
 nodes_list_t * mergeNodes(int nbPara, ...);
-void outputTree(node_t * treePtr, int spaces);
 nodes_list_t * pushNode(nodes_list_t * t, node_t * n);
 void print_node(node_t * n);
 void print_tree(nodes_list_t * n, char * space);
-void getLeaves(node_t * n, node_t * t);
-nodes_list_t * concatNodes(nodes_list_t * n1, nodes_list_t * n2);
+nodes_list_t * concatNodes(nodes_list_t * n1, nodes_list_t * n2); // deux noeuds deviennent freres

@@ -1,6 +1,6 @@
 extern int printd( int i );
 
-/*int (*fact) (int n); */
+int (*fact) (int n);
 
 int foo (int n)
 {

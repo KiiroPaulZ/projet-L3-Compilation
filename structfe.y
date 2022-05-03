@@ -59,24 +59,31 @@
 %%
 
 primary_expression
-        : IDENTIFIER  {
+        : IDENTIFIER  { //printf("lettre a\n");
                         symbole_t * s = NULL;
                         node_t * n = NULL;
                         table_t * stack_head = pile;
-                        s = rechercher_global(stack_head, $1);
-                        //printf("On a cherché %s, et s vaut %d\n", $1, s != NULL);
-                        n = create_node($1, NULL);
+                        s = rechercher_global(stack_head, $1); // Recherche de s dans dans la table
+                        n = create_node($1, NULL); // On crée un noeud auquel on associe le symbole
                         n->symb = s;
                         $$ = n;
                       }
-        | CONSTANT { node_t * n = NULL; n = create_node($1, NULL); /*n->type = INT_;*/ $$ = n; }
-        | '(' expression ')' { $$ = $2; }
+        | CONSTANT {    //printf("lettre b\n");
+                        node_t * n = NULL; n = create_node($1, NULL); /*n->type = INT_;*/ $$ = n; 
+                   }
+        | '(' expression ')' { 
+                        //printf("lettre c\n");
+                        $$ = $2; 
+                }
         ;
 
 postfix_expression
-        : primary_expression { $$ = $1; }
-        | postfix_expression '(' ')' { 
-                if($1->symb != NULL && $1->symb->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength($1->symb->param_list))){
+        : primary_expression { //printf("lettre d\n");;
+                $$ = $1; 
+        }
+        | postfix_expression '(' ')' {
+                //printf("lettre e\n");
+                if($1->symb != NULL && $1->symb->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength($1->symb->param_list))){ // Verification s'il s'agit bien d'un appel de fonction et si son nombre de paramètre correspond
                         $$ = $1;
                 } else {
                         clean_param_list_stack();
@@ -85,11 +92,8 @@ postfix_expression
                 }
         }
         | postfix_expression '(' argument_expression_list ')' {
+                //printf("lettre f\n");
                 // S'il s'agit d'une fonction, qu'il a un symbole associé et que la liste des parametres correspond à la liste de parametres définie initialement
-                //displayParam(param_list_stack);
-                //displayParam($1->symb->param_list);
-                //printf("%d <--\n", paramLength(param_list_stack));
-                //printf("1: %d, 2: %d\n", paramLength(param_list_stack), paramLength($1->symb->param_list));
                 if($1->symb != NULL && $1->symb->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength($1->symb->param_list))){
                         clean_param_list_stack(); // Après chaque utilisation il faut penser à clean la pile de parametre globale
                         //print_node($1);
@@ -102,11 +106,13 @@ postfix_expression
                 }
         }
         | postfix_expression '.' IDENTIFIER { 
+                                                //printf("lettre g\n");
                                                 node_t * n = NULL; 
                                                 n = create_node(".", mergeNodes(2, $1, create_node($3, NULL))); 
                                                 $$ = n;
                                             }
         | postfix_expression PTR_OP IDENTIFIER { 
+                //printf("lettre h\n");
                                                 node_t * n = NULL; 
                                                 n = create_node("->", mergeNodes(2, $1, create_node($3, NULL))); 
                                                 $$ = n; 
@@ -115,40 +121,39 @@ postfix_expression
 
 argument_expression_list
         : expression {
+                // On sauvegarde des informations pour le paramètre dans la ts et on l'ajoute à la pile des paramètres courants
+                //printf("lettre i\n");
                 if($1->symb == NULL){
                         symbole_t * s = malloc(sizeof(symbole_t));
                         s->nom = $1->name;
                         $1->symb = s;
                 }
-                //displayParam(param_list_stack);
-                //printf("=========%d-1========\n", yylineno);
                 addParam(&param_list_stack, $1->symb);
-                //displayParam(param_list_stack);
-                //printf("=================\n");
         }
         | argument_expression_list ',' expression{
+                //printf("lettre j\n");
                 if($3->symb == NULL){ // Si le noeud n'a pas de symbole c'est qu'il s'agit d'une opération, donc on lui creer un symbole "vide"
                         symbole_t * s = malloc(sizeof(symbole_t));
                         s->nom = $3->name;
                         $3->symb = s;
                 }
-                //displayParam(param_list_stack);
-                //printf("=========%d-2========\n", yylineno);
                 addParam(&param_list_stack, $3->symb);
-                //displayParam(param_list_stack);
-                //printf("=================\n");
         }
         ;
 
 unary_expression
         : postfix_expression {$$ = $1;}
         | unary_operator unary_expression { 
+                                                //printf("lettre k\n");
                                                 node_t * n = NULL;
                                                 n = create_node($1, mergeNodes(1,$2));
                                                 //n->type = $2->type;
                                                 $$ = n;
                                           }
-        | SIZEOF unary_expression {$$ = create_node("SIZEOF", mergeNodes(1,$2));}
+        | SIZEOF unary_expression {
+                //printf("lettre l\n");
+                $$ = create_node("SIZEOF", mergeNodes(1,$2));
+        }
         ;
 
 unary_operator
@@ -202,31 +207,32 @@ expression
 
 declaration
         : declaration_specifiers declarator ';' {       
-                                                        
-                                                        //print_table();
-                                                        //print_complete_table();
+                                                        //printf("lettre m\n");
                                                         if($1 == VOID_){
                                                                 printf("%sLigne %d, vous ne pouvez pas déclarer une variable de type void.\n", ERROR, yylineno);
                                                                 exit(1);
                                                         }
+
                                                         symbole_t *s = NULL;
                                                         table_t * stack_head = pile;
+                                                        
                                                         if(stack_head == NULL){
+                                                                //printf("l%d stackhead null\n", yylineno);
                                                                 table_t *table = nouvelle_table(); push(table); // Si la pile est vide on l'initialise
                                                         }
+
                                                         table_t * current = stack_head;
 
                                                         if(current != NULL)
                                                                 s = rechercher(current->symbole, $2);
 
-                                                        //print_table();
                                                         symbole_t * s2 = NULL;
-                                                        if(stack_head != NULL)
-                                                                s2 = rechercherStack((getSymbole(stack_head->preced->symbole,-1))->param_list, $2); // Je vérifie aussi s'il existe dans les parametres des symboles de la fonction
 
+                                                        if(stack_head != NULL && stack_head->symbole != NULL && stack_head->preced->symbole != NULL)
+                                                                s2 = rechercherStack((getSymbole(stack_head->preced->symbole,-1))->param_list, $2); // Je vérifie aussi si ce que je déclare n'a pas le meme nom qu'un parametre dans la définition de fonction courante
                                                         if(s != NULL){
                                                                 printf("%sLigne %d, la variable '%s' a déjà été déclarée.\n", ERROR, yylineno, $2);
-                                                                print_table();
+                                                                //print_table();
                                                                 exit(1);
                                                         } else if (s2 != NULL) {
                                                                 print_complete_table();
@@ -266,14 +272,12 @@ declaration
                                                                 s->suivant = NULL;
                                                                 pos += s->taille;
                                                         }
-                                                        //print_table();
-                                                        //print_complete_table();
                                                 }
         | struct_specifier ';'
         ;
 
 declaration_specifiers
-        : EXTERN type_specifier {       
+        : EXTERN type_specifier {       //printf("lettre n\n");
                                         switch($2){
                                                 case INT_: $$ = EXTERN_INT_; break;
                                                 case VOID_: $$ = EXTERN_VOID_; break;
@@ -301,14 +305,14 @@ struct_declaration_list
         ;
 
 struct_declaration
-        : type_specifier declarator ';'
+        : type_specifier declarator ';' {}
         ;
 
 declarator
         : '*' direct_declarator { 
+                //printf("lettre o\n");
                 char p[strlen($2)+2]; 
                 sprintf(p, "*%s", $2); 
-                //printf("p : %s\n",p);
                 $$ = strdup(p);
         }
         | direct_declarator { $$ = $1; }
@@ -317,26 +321,24 @@ declarator
 direct_declarator
         : IDENTIFIER {$$ = $1;}
         | '(' declarator ')' {$$ = $2;}
-        | direct_declarator '(' parameter_list ')' {
-                //clean_param_list_stack();
-                $$ = $1;
-        }
+        | direct_declarator '(' parameter_list ')' {$$ = $1;}
         | direct_declarator '(' ')' {$$ = $1;}
         ;
 
 parameter_list
         : parameter_declaration {
+                //printf("lettre r\n");
                 addParam(&param_list_stack, $1);
-                //displayParam(param_list_stack);
         }
         | parameter_list ',' parameter_declaration {
+                //printf("lettre s\n");
                 addParam(&param_list_stack, $3);
-                //displayParam(param_list_stack);
         }
         ;
 
 parameter_declaration
         : declaration_specifiers declarator {
+                //printf("lettre t\n");
                 char * nom = $2; // Je sauvegarde les informations
                 symbole_t * s;
                 s = malloc(sizeof(symbole_t));
@@ -368,7 +370,8 @@ compound_statement
         ;
 
 ACCOO : '{' {table_t *table = nouvelle_table(); push(table);}
-ACCOF : '}' {
+ACCOF : '}' {   /* NE PAS TOUCHER */
+                //printf("lettre w\n");
                 /*table_t *table = pop(); 
                 detruire_table(&table);
                 if((*top()) != NULL){ // autrement dit si la pile est vide    
@@ -376,20 +379,21 @@ ACCOF : '}' {
                 } else {
                     printf("[]\n");
                 }*/
+                /* ************* */
             }
 
 declaration_list
-        : declaration
-        | declaration_list declaration
+        : declaration { $$ = NULL; }
+        | declaration_list declaration { $$ = NULL; }
         ;
 
 statement_list
-        : statement { $$ = $1;}
-        | statement_list statement {$$ = concatNodes($1, $2);}
+        : statement {$$ = $1;}
+        | statement_list statement {$$ = concatNodes($1, $2); }
         ;
 
 expression_statement
-        : ';'
+        : ';' { $$ = NULL; }
         | expression ';' {$$ = $1;}
         ;
 
@@ -399,8 +403,8 @@ selection_statement
         ;
 
 iteration_statement
-        : WHILE '(' expression ')' statement { $$ = create_node("WHILE", concatNodes(mergeNodes(1, $3), $5)); }
-        | FOR '(' expression_statement expression_statement expression ')' statement {$$ = create_node("FOR", concatNodes( mergeNodes(3, $3, $4, $5), $7));}
+        : WHILE '(' expression ')' statement {$$ = create_node("WHILE", concatNodes(mergeNodes(1, $3), $5)); }
+        | FOR '(' expression_statement expression_statement expression ')' statement { $$ = create_node("FOR", concatNodes( mergeNodes(3, $3, $4, $5), $7)); }
         ;
 
 jump_statement
@@ -409,10 +413,10 @@ jump_statement
         ;
 
 program_start: program {        
-                                
+                                //Obliger de séparer le start du program car on affiche chaque AST des fonctions, donc on ne veux pas un arret prématuré
                                 table_t *table = pop(); 
                                 detruire_table(&table);
-                                if((*top()) != NULL){ // autrement dit si la pile est vide    
+                                if((*top()) != NULL){ // autrement dit, si la pile est vide    
                                         //print_table();
                                 } else {
                                         printf("[]\n");
@@ -442,12 +446,13 @@ program
 
 external_declaration
         : function_definition { $$ = $1;}
-        | declaration { $$ = NULL;print_complete_table();}
+        | declaration { $$ = NULL;}
         ;
 
 function_init
         : declaration_specifiers declarator {
-                
+                /* Nouvelle regle syntaxique */
+                // Il fallait pouvoir agir sur la declaration des fonctions indépendamment des paramètres de celle-ci
                 symbole_t *s = NULL;
                 table_t * stack_head = pile;
                 if(stack_head == NULL){
@@ -471,33 +476,26 @@ function_init
                         s->taille = sizeof($1);
                         s->position = pos;
                         s->suivant = NULL;
-                        pos += s->taille;
-                        //displayParam(param_list_stack);  
+                        pos += s->taille; 
                 }
-                //print_table();
-                //print_complete_table();
                 if(($2)[0] == '*')
                         $2++;
                 
                 s->param_list = copyParamList(param_list_stack);
                 $$ = s;
-                displayParam(s->param_list);
                 clean_param_list_stack();
-                //print_table();
         }
 
 function_definition
         :  function_init compound_statement {   
-                                                //printf("affichage du compound:\n");
                                                 print_tree($2, "");
-                                                clean_param_list_stack();              
+                                                print_complete_table();
+                                                clean_param_list_stack(); // On nettoie la pile des paramètres par précaution
                                                 node_t * n  = create_node(getSymbole($1,-1)->nom,$2);
                                                 n->symb = $1;
                                                 $$ = n;
-                                                print_complete_table();
                                         }
         ;
-
 %%
         int yyerror(char *s){ // fonction pour détecter une erreur
                 fprintf(stderr, "%s\n", s);

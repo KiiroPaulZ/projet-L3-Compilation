@@ -4,7 +4,6 @@ FS                      (f|F|l|L)
 IS                      (u|U|l|L)*
 
 %{
-    #include "table_symb.h"
     #include "nodes.h"
     #include "y.tab.h"
     /* Ne g�re pas les commentaires. A rajouter */

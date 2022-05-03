@@ -25,7 +25,7 @@ typedef struct _symbole_t{
     type_t type;
     int taille;
     int position;
-    ts_type ts;
+    ts_type ts; // "nature" du symbole 
     struct _param_list_t * param_list; // Dans le cas où c'est une fonction on sauvegarde ses paramètres
     struct _symbole_t *suivant;
 }symbole_t;
@@ -48,7 +48,7 @@ table_t *pile;
 void addParam(param_list_t ** st, symbole_t * s);
 param_list_t * copyParamList(param_list_t * stack); // fait une copy de la liste de parametre courante
 void clean_param_list_stack();
-void displayParam(param_list_t * p);
+void displayParam(param_list_t * p); // Afficher une pile de paramètre
 int paramLength(param_list_t * p);
 symbole_t * rechercherStack(param_list_t * p, char * nom);
 
@@ -63,5 +63,5 @@ table_t * pop();
 void detruire_table(table_t ** list);
 void print_table();
 void print_complete_table();
-symbole_t * getSymbole(symbole_t * list, int n);
+symbole_t * getSymbole(symbole_t * list, int n); // Recuperer un symbole à une position n, si -1 on récupere le dernier element
 #endif
