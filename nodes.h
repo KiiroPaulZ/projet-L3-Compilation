@@ -71,9 +71,10 @@ typedef enum {
 
 typedef struct node_ {
         char * name;
-        node_type type;
+        node_type ntype;
         struct nodes_list_ * children;
-        ts_type * ts_t;
+        ts_type ts_t;
+        type_t type;
         symbole_t * symb;
 } node_t;
 

@@ -1,17 +1,24 @@
 extern int printd( int i );
 
-int (*fact) (int n);
+int foo(int i);
 
-int foo (int n)
-{
-  if ( n <= 1 )
-    return 1;
-  return (n*(*fact)(n-1));
+int foo(int i, int k){
+  int a;
+  if(i <= 10)
+    return k;
+  return 0;
 }
 
+int foo(int i);
+
+int foo(int i, int k){ 
+  if(i <= 10)
+    return k;
+  return 0;
+}
 
 int main() {
-  fact=&foo;
-  printd((*fact)(10));
-  return 0;
+  int a;
+  a = a + 1;
+  return foo(1, a);
 }

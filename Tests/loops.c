@@ -6,7 +6,7 @@ int main() {
 
   while (i <= 10) {
     int i;
-      printd(i);
+    printd(i);
   }
   for ( i = -10; i <= 10; i = i+1 )
     printd(i);

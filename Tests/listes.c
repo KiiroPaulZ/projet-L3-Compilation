@@ -1,7 +1,6 @@
 /* Description d'une liste chainee */
 extern int printd( int i );
 
-
 struct liste {
   int valeur;
   struct liste *suivant;
@@ -28,7 +27,7 @@ struct liste *allouer(struct liste *p) {
 }
 /* Desallocation de l'element courant de la liste */
 struct liste *desallouer(struct liste *p) {
-  struct liste *q;
+  struct liste * q;
   q=p->suivant;
   free(p);
   return q;

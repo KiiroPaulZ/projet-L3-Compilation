@@ -11,6 +11,7 @@ int foo(){
   i = -1;
   return a;
 }*/
+int a;
 
 int main() {
   int a;

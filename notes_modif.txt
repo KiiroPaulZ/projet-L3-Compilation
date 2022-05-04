@@ -3,3 +3,5 @@
       => On s'est rendu compte que le parcours se fait en analyse descendente, 
             on a ajouté un flag à la structure symbole pour vérifier s'il s'agit d'un pointeur.
 30/04 => On ne gere pas ce genre de fonction : (n*(*fact)(n-1)), modification sur la declaration de fonction pour manipuler les parametres
+04/05 => Un des champs des structs specifier est anonyme et rien dans la grammaire ne permet de le gerer, on a considerer ça comme une erreur
+      => La TS est un peu speciale, on a ajouté un "marqueur" pour connaitre le scope des symboles pour vérifier s'il y a des redéclaration ect...
