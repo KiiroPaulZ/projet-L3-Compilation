@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <ctype.h>
 #define BUFFER_SIZE 200
 
 int pos;

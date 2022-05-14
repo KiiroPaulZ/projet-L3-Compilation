@@ -18,6 +18,7 @@
         void semanticAnalysis(nodes_list_t * n);
         int paramMatching(param_list_t * a, param_list_t * b);
         char * marker = "prog"; // Pour verifier si une variable globale est redefinie !
+        char * type_check(nodes_list_t * a);
 %}
 
 %union{
@@ -34,7 +35,7 @@
 }
 
 %type<node> expression primary_expression postfix_expression unary_expression program type_specifier declaration_specifiers
-%type<node> multiplicative_expression additive_expression relational_expression equality_expression
+%type<node> multiplicative_expression additive_expression relational_expression equality_expression program_start
 %type<node> logical_and_expression logical_or_expression declaration struct_specifier declarator direct_declarator 
 %type<node> ACCOO ACCOF expression_statement selection_statement iteration_statement jump_statement external_declaration function_definition
 %type<nom>  unary_operator
@@ -95,7 +96,7 @@ postfix_expression
                 // S'il s'agit d'une fonction, qu'il a un symbole associé et que la liste des parametres correspond à la liste de parametres définie initialement
                 if($1->symb != NULL && $1->symb->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength($1->symb->param_list))){
                         if($1->symb->is_function_def){
-                                print_complete_table();
+                                //print_complete_table();
                                 clean_param_list_stack(); // Après chaque utilisation il faut penser à clean la pile de parametre globale
                                 $$ = $1;
                         } else {
@@ -111,9 +112,9 @@ postfix_expression
                                 if(sy == NULL)
                                         break;
                                 if(sy->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength(sy->param_list))){
-                                        printf("%d - %d| c'est une fun (en f')? %d\n", paramLength(param_list_stack), paramLength(sy->param_list), sy->ts == FONCTION_);
+                                        //printf("%d - %d| c'est une fun (en f')? %d\n", paramLength(param_list_stack), paramLength(sy->param_list), sy->ts == FONCTION_);
                                         if(sy->is_function_def){
-                                                print_complete_table();
+                                                //print_complete_table();
                                                 clean_param_list_stack(); // Après chaque utilisation il faut penser à clean la pile de parametre globale
                                                 $$ = $1;
                                         } else {
@@ -127,15 +128,15 @@ postfix_expression
                                 n++;
                         }
                         if(sy == NULL){
-                                print_complete_table();
-                                printf("%d - %d| c'est une fun (en f2)? %d\n", paramLength(param_list_stack), paramLength($1->symb->param_list), $1->symb->ts == FONCTION_);
+                                //print_complete_table();
+                                //printf("%d - %d| c'est une fun (en f2)? %d\n", paramLength(param_list_stack), paramLength($1->symb->param_list), $1->symb->ts == FONCTION_);
                                 clean_param_list_stack();
                                 printf("%sLigne %d, la fonction n'est pas déclaré et/ou le nombre de paramètres n'est pas valide!\n",ERROR, yylineno);
                                 exit(1);
                         }
                 }else {
-                        print_complete_table();
-                        printf("%d - %d| c'est une fun (en f)? %d\n", paramLength(param_list_stack), paramLength($1->symb->param_list), $1->symb->ts == FONCTION_);
+                        //print_complete_table();
+                        //printf("%d - %d| c'est une fun (en f)? %d\n", paramLength(param_list_stack), paramLength($1->symb->param_list), $1->symb->ts == FONCTION_);
                         clean_param_list_stack();
                         printf("%sLigne %d, la fonction n'est pas déclaré et/ou le nombre de paramètres n'est pas valide!\n",ERROR, yylineno);
                         exit(1);
@@ -179,7 +180,7 @@ argument_expression_list
 
 unary_expression
         : postfix_expression {$$ = $1;}
-        | unary_operator unary_expression { 
+        | unary_operator unary_expression {
                                                 //printf("lettre k\n");
                                                 node_t * n = NULL;
                                                 n = create_node(strdup($1), mergeNodes(1,$2));
@@ -262,14 +263,14 @@ declaration
 
                                                         if($1->type == STRUCT_){
                                                                 printf("il a vu (l %d) que ct un struct %s\n",yylineno, $1->children->first->name);
-                                                                print_complete_table();
+                                                                //print_complete_table();
 
                                                                 symbole_t * s = rechercher_global(current->preced, $1->children->first->name, 0, ""); //rechercher(current->preced->symbole, $1->children->first->name);
-                                                                printf("res : %d\n", s != NULL);
+                                                                //printf("res : %d\n", s != NULL);
                                                                 if(s == NULL){
                                                                         printf("%sLigne %d, cette structure n'est pas définie.\n",ERROR, yylineno);
+                                                                        exit(1);
                                                                 }
-                                                                exit(1);
                                                         }
                                                         
                                                         if(current != NULL)
@@ -280,14 +281,16 @@ declaration
                                                         if(stack_head != NULL && stack_head->preced != NULL && stack_head->preced->symbole != NULL)
                                                                 s2 = rechercherStack((getSymbole(stack_head->preced->symbole,-1))->param_list, $2->name); // Je vérifie aussi si ce que je déclare n'a pas le meme nom qu'un parametre dans la définition de fonction courante
                                                         //printf("s2 vaut %d\n", s2 != NULL);
-                                                        
-                                                        if(s != NULL && s->ts != FONCTION_ && strcmp(s->marker, marker) == 0 || ((rechercher_global(pile, $2->name, 0, "prog")) != NULL && strcmp((rechercher_global(pile, $2->name, 0, "prog"))->marker, "prog") == 0) && (rechercher_global(pile, $2->name, 0, "prog"))->ts != FONCTION_ ){
+                                                       
+                                                        if(s != NULL && s->ts != FONCTION_ && strcmp(s->marker, marker) == 0 || ((rechercher_global(pile, $2->name, 0, "prog")) != NULL && strcmp((rechercher_global(pile, $2->name, 0, "prog"))->marker, marker) == 0) && (rechercher_global(pile, $2->name, 0, "prog"))->ts != FONCTION_ ){
+                                                                //print_complete_table();
+                                                                //printf("current mark : %s\n", marker);
                                                                 //printf("%d / %d\n", s != NULL && s->ts != FONCTION_ , ((rechercher_global(pile, $2->name, 0, "prog")) != NULL && strcmp((rechercher_global(pile, $2->name, 0, "prog"))->marker, "prog") == 0) && (rechercher_global(pile, $2->name, 0, "prog"))->ts != FONCTION_ );
                                                                 printf("%sLigne %d, la variable '%s' a déjà été déclarée.\n", ERROR, yylineno, $2->name);
                                                                 //print_table();
                                                                 exit(1);
                                                         } else if (s2 != NULL) {
-                                                                print_complete_table();
+                                                                //print_complete_table();
                                                                 printf("%sLigne %d, vous ne pouvez pas déclarer %s car elle est défini en parametre de fonction.\n", ERROR, yylineno, $2->name);
                                                                 exit(1);
                                                          }else if (s != NULL && s->ts == FONCTION_){ 
@@ -328,8 +331,8 @@ declaration
                                                                 s->position = pos;
                                                                 s->suivant = NULL;
                                                                 pos += s->taille;
-                                                                printf("FIN DELCARATION DE %s\n", $2->name);
-                                                                print_complete_table();
+                                                                //printf("FIN DELCARATION DE %s\n", $2->name);
+                                                                //print_complete_table();
                                                         }
                                                 }
         | struct_specifier ';' {
@@ -544,32 +547,125 @@ jump_statement
         ;
 
 program_start: program {        
+                                printf("AFFICHAGE FINAL\n");
+                                print_tree(mergeNodes(1,$$), "");
                                 //Obliger de séparer le start du program car on affiche chaque AST des fonctions, donc on ne veux pas un arret prématuré
+                                
+                                print_complete_table();
                                 table_t *table = pop(); 
                                 detruire_table(&table);
-                                if((*top()) != NULL){ // autrement dit, si la pile est vide    
-                                        //print_table();
+
+                                /*if((*top()) != NULL){ // autrement dit, si la pile est vide    
+                                        print_table();
                                 } else {
                                         printf("[]\n");
-                                }
-                        };
+                                }*/
+                        }
+                ;
 
 program
         : external_declaration {
+                printf("AFFICHAGE PREM1\n");
+                print_complete_table();
                 nodes_list_t * arbre = NULL;
                 if($1 != NULL){
-                        $$ = create_node("prog", mergeNodes(1, $1)); 
                         arbre = mergeNodes(1, $1);
                         print_tree(arbre, "");
+                        printf("TYPECHECK ==> DEBUT\n");
+                        // Il faut verifier chacune de ses branches
+                        nodes_list_t * current = arbre->first->children;
+                        int i = 0;
+                        while(current->next != NULL){ // je ne gere pas le return pour le moment
+                                printf("i = %d\n", i);
+                                type_check(current);
+                                current = current->next;
+                                i++;
+                        }
+                        i++;
+                        printf("i = %d\n", i);
+                        switch(arbre->first->symb->type){
+                                case INT_ :{
+                                        if(strcmp(type_check(current), "int") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "int *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "int") != 0 && strcmp(type_check(current), "int *") != 0)){
+                                                printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
+                                                exit(1);
+                                        }
+                                        break;
+                                }
+
+                                case VOID_ : {
+                                        if(strcmp(type_check(current), "void") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "void *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "void") != 0 && strcmp(type_check(current), "void *") != 0)){
+                                                 printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
+                                                exit(1);
+                                        }
+                                        break;
+                                }
+
+                                default : { // STRUCT_
+                                        if(strcmp(type_check(current), "struct") != 0){
+                                                 printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
+                                                exit(1);
+                                        }
+                                        break;
+                                }             
+                        }
+                        printf("TYPECHECK ==> OK\n");
                 }
+                $$ = create_node("prog", mergeNodes(1, $1));
         }
         | program external_declaration {
+                printf("AFFICHAGE PREM2\n");
+                print_complete_table();
                 nodes_list_t * arbre = NULL;
                 if($2 != NULL){
-                        $$ = create_node("prog", mergeNodes(1, $2));
                         arbre = mergeNodes(1, $2);
                         print_tree(arbre, "");
+                        printf("TYPECHECK ==> DEBUT\n");
+                        nodes_list_t * current = arbre->first->children;
+                        int i = 0;
+                        while(current->next != NULL){ // je ne gere pas le return pour le moment
+                                printf("i = %d\n", i);
+                                type_check(current);
+                                current = current->next;
+                                i++;
+                        }
+                        i++;
+                        printf("i = %d\n", i);
+
+                        if(strcmp(current->first->name, "RETURN") != 0 && arbre->first->symb->type != VOID_){
+                                printf("%sIl n'y a pas de fonction de retour alors que la fonction n'est pas de type void.\n", ERROR);
+                                exit(1);
+                        } else if (strcmp(current->first->name, "RETURN") != 0 && arbre->first->symb->type == VOID_ && arbre->first->symb->isPtr == false){
+                                /* il n'y a rien a faire */
+                        } else {
+                                switch(arbre->first->symb->type){
+                                        case INT_ :{
+                                                if(strcmp(type_check(current), "int") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "int *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "int") != 0 && strcmp(type_check(current), "int *") != 0)){
+                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
+                                                        exit(1);
+                                                }
+                                                break;
+                                        }
+
+                                        case VOID_ : {
+                                                if(strcmp(type_check(current), "void") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "void *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "void") != 0 && strcmp(type_check(current), "void *") != 0)){
+                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
+                                                        exit(1);
+                                                }
+                                                break;
+                                        }
+
+                                        default : { // STRUCT_
+                                                if(strcmp(type_check(current), "struct") != 0){
+                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
+                                                        exit(1);
+                                                }
+                                                break;
+                                        }             
+                                }
+                        }
+                        printf("TYPECHECK ==> OK\n");    
                 }
+                $$ = create_node("prog", mergeNodes(1, $2));
         }
         ;
 
@@ -638,7 +734,7 @@ function_init
                                         printf("%sLigne %d, La fonction '%s' est déjà définie.\n", ERROR, yylineno, $2->name);
                                         exit(1);
                                 } else if (sy != NULL && sy->ts == FONCTION_ && sy->is_function_def ) {
-                                        printf("%d - %d\n", paramLength(param_list_stack), paramLength(sy->param_list));
+                                        //printf("%d - %d\n", paramLength(param_list_stack), paramLength(sy->param_list));
                                         //printf("ct une occur mais pas les memes params\n");
                                         sy = NULL;
                                 } else {
@@ -652,8 +748,8 @@ function_init
 
 function_definition
         :  function_init compound_statement {   
-                                                print_tree($2, "");
-                                                print_complete_table();
+                                                //print_tree($2, "");
+                                                //print_complete_table();
                                                 clean_param_list_stack(); // On nettoie la pile des paramètres par précaution
                                                 node_t * n  = create_node(getSymbole($1,-1)->nom,$2);
                                                 n->symb = $1;
@@ -712,7 +808,6 @@ function_definition
                                 depthS = table->symbole;
                                 while(1){
                                         s = rechercher(depthS, nom);
-
                                         if(s != NULL){
                                                 //printf("POUR %s, s VAUT 1 ('%s') et mark: %s avec pour mark %s\n", nom, s->nom, s->marker, mark);
                                                 //printf("res %d\n",n);
@@ -723,10 +818,10 @@ function_definition
                                                 break;
                                         }
 
-                                        if(s != NULL && (strcmp(s->marker, mark) == 0 || strcmp("", mark) == 0) && n == 0){ // "" pour faire une recherche classique
+                                        if(s != NULL && (s->marker != NULL && strcmp(s->marker, mark) == 0 || strcmp("", mark) == 0) && n == 0){ // "" pour faire une recherche classique
                                                 return s;
                                         }
-                                        if(s != NULL && (strcmp(s->marker, mark) == 0 || strcmp("", mark) == 0))
+                                        if(s != NULL && (s->marker != NULL && strcmp(s->marker, mark) == 0 || strcmp("", mark) == 0))
                                                 n--;
                                         depthS = depthS->suivant;
                                 }
@@ -1141,6 +1236,214 @@ function_definition
                         current = current->suivant;
                 }
                 return count;
+        }
+
+        char * type_check(nodes_list_t * a){
+                /*printf("la\n");
+                if(a->first != NULL){
+                        if (a->first->name != NULL){
+                                printf("tout est bon\n");
+                        } else {
+                                printf("nom pb\n");
+                                exit(1);
+                        }
+                } else {
+                        printf("first pb \n");
+                        exit(1);
+                }*/
+                //printf("je suis avec %s\n", a->first->name);
+                if(strcmp(a->first->name, "=") == 0){
+                        char * fg = type_check(a->first->children);
+                        //printf("fg vaut %s\n", fg);
+                        char * fd = type_check(a->first->children->next);
+                        //printf("fd vaut %s\n", fd);
+                        if(strcmp(fg, fd) == 0)
+                                return fg; 
+                        printf("%sTYPECHECK: '=' attendait un type %s mais a reçu un type %s OU il s'agit d'un probleme de pointeurs.\n", ERROR, fg, fd);
+                        exit(1);
+                } else if (strcmp(a->first->name, "+") == 0){
+                        char * fg = type_check(a->first->children);
+                        char * fd = type_check(a->first->children->next);
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                                return "int"; 
+                        } else if (((strcmp(fg, "int *") == 0 && strcmp(fd, "int") == 0)) || ((strcmp(fg, "int") == 0 && strcmp(fd, "int *") == 0)) || ((strcmp(fg, "int *") == 0 && strcmp(fd, "int *") == 0))){
+                                return "int *";
+                        }
+                        printf("%sTYPECHECK: '+' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
+                        exit(1);
+                } else if (strcmp(a->first->name, "-") == 0){ // Il faut aussi verifier s'il s'agit d'une opération unaire
+                        if(a->first->children->next != NULL){ // S'il ne s'agit pas de l'operation unaire
+                                char * fg = type_check(a->first->children);
+                                char * fd = type_check(a->first->children->next);
+
+                                if((strcmp(fg, "int *") == 0 && strcmp(fd, "int *") == 0) || (strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0))
+                                        return "int"; 
+                                
+                                printf("%sTYPECHECK: '-' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
+                                exit(1);
+                        } else {
+                                char * fils = type_check(a->first->children);
+                                if(strcmp(fils, "int") == 0)
+                                        return "int";
+                                printf("%sTYPECHECK: '-' (UNAIRE) attendait un type int mais a reçu un type %s.\n", ERROR, fils);
+                                exit(1);
+                        }
+                } else if (strcmp(a->first->name, "*") == 0){ // Il faut aussi vérifier s'il s'agit d'un pointeur
+                        char * fg = type_check(a->first->children);
+                        char * fd = type_check(a->first->children->next);
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                                return "int"; 
+                        }         
+                        printf("%sTYPECHECK: '*' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
+                        exit(1);
+                } else if (strcmp(a->first->name, "/") == 0){
+                        char * fg = type_check(a->first->children);
+                        char * fd = type_check(a->first->children->next);
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                                return "int"; 
+                        }         
+                        printf("%sTYPECHECK: '/' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
+                        exit(1);
+                } else if (strcmp(a->first->name, ">") == 0){
+                        char * fg = type_check(a->first->children);
+                        char * fd = type_check(a->first->children->next);
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                                return "int"; 
+                        }         
+                        printf("%sTYPECHECK: '>' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
+                        exit(1);
+                } else if (strcmp(a->first->name, "<") == 0){
+                        char * fg = type_check(a->first->children);
+                        char * fd = type_check(a->first->children->next);
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                                return "int"; 
+                        }         
+                        printf("%sTYPECHECK: '<' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
+                        exit(1);
+                } else if (strcmp(a->first->name, ">=") == 0){
+                        char * fg = type_check(a->first->children);
+                        char * fd = type_check(a->first->children->next);
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                                return "int"; 
+                        }         
+                        printf("%sTYPECHECK: '>=' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
+                        exit(1);
+                } else if (strcmp(a->first->name, "<=") == 0){
+                        char * fg = type_check(a->first->children);
+                        char * fd = type_check(a->first->children->next);
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                                return "int"; 
+                        }         
+                        printf("%sTYPECHECK: '<=' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
+                        exit(1);
+                } else if (strcmp(a->first->name, "==") == 0){
+                        char * fg = type_check(a->first->children);
+                        char * fd = type_check(a->first->children->next);
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                                return "int"; 
+                        }         
+                        printf("%sTYPECHECK: '==' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
+                        exit(1);
+                } else if (strcmp(a->first->name, "!=") == 0){
+                        char * fg = type_check(a->first->children);
+                        char * fd = type_check(a->first->children->next);
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                                return "int"; 
+                        }         
+                        printf("%sTYPECHECK: '!=' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
+                        exit(1);
+                } else if (strcmp(a->first->name, "&&") == 0){
+                        char * fg = type_check(a->first->children);
+                        char * fd = type_check(a->first->children->next);
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                                return "int"; 
+                        }         
+                        printf("%sTYPECHECK: '&&' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
+                        exit(1);
+                } else if (strcmp(a->first->name, "||") == 0){
+                        char * fg = type_check(a->first->children);
+                        char * fd = type_check(a->first->children->next);
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                                return "int"; 
+                        }         
+                        printf("%sTYPECHECK: '||' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
+                        exit(1);
+                } else if (strcmp(a->first->name, "&") == 0){
+                        char * fils = type_check(a->first->children);
+                        if(strcmp(fils, "int") == 0){
+                                return "int *"; 
+                        } else if (a->first->children->first->symb->ts == FONCTION_){
+                                switch(a->first->children->first->symb->type){
+                                        case INT_ : return "int *"; break;
+                                        case VOID_: return "void *"; break;
+                                        default : return "struct"; break;
+                                }
+                        }        
+                        printf("%sTYPECHECK: '&' (UNAIRE) attendait un type int ou une fonction mais a reçu un type %s et/ou n'est pas une fonction.\n", ERROR, fils);
+                        exit(1);
+                } else if (strcmp(a->first->name, "->") == 0){
+                        char * fg = type_check(a->first->children);
+                        char * fd = type_check(a->first->children->next);
+                        if(strcmp(fg, "struct") == 0 && a->first->children->first->symb->isPtr == true){
+                                return fd; 
+                        }         
+                        printf("%sTYPECHECK: '->' attendait un type struct mais a reçu un type %s (peut-etre pas un pointeur?) .\n", ERROR, fg);
+                        exit(1);
+                } else if (strcmp(a->first->name, ".") == 0){
+                        char * fg = type_check(a->first->children);
+                        char * fd = type_check(a->first->children->next);
+                        if(strcmp(fg, "struct") == 0 && a->first->children->first->symb->isPtr == false){
+                                return fd; 
+                        }         
+                        printf("%sTYPECHECK: '.' attendait un type struct mais a reçu un type %s (peut-etre un pointeur?) .\n", ERROR, fg);
+                        exit(1);
+                } else if (strcmp(a->first->name, "RETURN") == 0){
+                        if(a->first->children != NULL){
+                                char * fils = type_check(a->first->children);
+                                return fils;
+                        } else {
+                                return "void";
+                        }
+                        
+                } else { // Si on entre ici, soit on a pas implémenté un opérateur, soit il faut faire remonter un type
+                        //JE RECHERCHE DANS LA TS L'ELEMENT COURANT ...
+                        
+                        table_t * stack_head = pile;
+                        symbole_t * s = NULL;
+
+                        if(isdigit(a->first->name[0])){ // c'est qu'il s'agit d'une constante
+                                return "int";
+                        }
+                        
+                        s = rechercher_global(stack_head, a->first->name, 0, "");
+
+                        /*if(s->ts == FONCTION_){
+                                printf("PAS IMPLEMENTEZ\n");
+                                exit(1);
+                        }*/
+
+                        if (s != NULL) {
+                                type_t res;
+                                res = s->type;
+                                switch(res){
+                                        case INT_ :{
+                                                if(s->isPtr)
+                                                        return "int *";
+                                                return "int";
+                                                break;}
+                                        case VOID_ :{
+                                                if(s->isPtr)
+                                                        return "void *";
+                                                return "void";
+                                                break;}
+                                        default :
+                                                return "struct";
+                                }
+                        }
+                        
+                        printf("TYPECHECK : %s n'est pas géré semble-t-il OU n'existe pas.\n", a->first->name);
+                        exit(1);
+                }
         }
 
         int main(){

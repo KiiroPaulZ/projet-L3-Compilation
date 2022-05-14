@@ -1,165 +1,58 @@
-program
-     |___> external_declaration 
-          |___> function_definition
-               |___> declaration_specifier 
-                    |___> type_specifier
-                         |___> int 
+AFFICHAGE PREM1
+================================
+{
+        NAME: a                      | isPTR: 0 | type:  0 | TAILLE:   4 | POSITION:   0 | TS NATURE:  1 | PARAM_LENGTH:  0 | FUN def?:0 | MARKER: prog
+}
 
-               |___> declarator 
-                    |___> direct_declarator
-                         |___> main 
-                         |___> ( 
-                         |___> ) 
+================================
+[0;35mWARNING: [0;37mLigne 6, la variable 'a' en masque une autre.
+AFFICHAGE PREM2
+================================
+{
+        NAME: a                      | isPTR: 0 | type:  0 | TAILLE:   4 | POSITION:   8 | TS NATURE:  1 | PARAM_LENGTH:  0 | FUN def?:0 | MARKER: main
+        NAME: b                      | isPTR: 0 | type:  0 | TAILLE:   4 | POSITION:  12 | TS NATURE:  1 | PARAM_LENGTH:  0 | FUN def?:0 | MARKER: main
+        NAME: c                      | isPTR: 0 | type:  0 | TAILLE:   4 | POSITION:  16 | TS NATURE:  1 | PARAM_LENGTH:  0 | FUN def?:0 | MARKER: main
+        NAME: k                      | isPTR: 1 | type:  0 | TAILLE:   4 | POSITION:  20 | TS NATURE:  1 | PARAM_LENGTH:  0 | FUN def?:0 | MARKER: main
+}
+{
+        NAME: a                      | isPTR: 0 | type:  0 | TAILLE:   4 | POSITION:   0 | TS NATURE:  1 | PARAM_LENGTH:  0 | FUN def?:0 | MARKER: prog
+        NAME: main                   | isPTR: 0 | type:  0 | TAILLE:   4 | POSITION:   4 | TS NATURE:  0 | PARAM_LENGTH:  0 | FUN def?:1 | MARKER: NONE
+}
 
-               |___> compound_statement 
-                    |___> {
+================================
+main
+     |___> = 
+          |___> a
 
-                    |___> declaration_list
-                         |___> declaration_list 
-                              |___> declaration_list
-                                   |___> declaration
-                                        |___> declaration_specifier
-                                             |___> type_specifier 
-                                                  |___> int
+          |___> +
+               |___> 1 
+               |___> 9 
 
+     |___> = 
+          |___> b
 
-                                        |___> declarator
-                                             |___> a 
+          |___> 3
 
-                                        |___> ;
+     |___> = 
+          |___> c
 
+          |___> /
+               |___> 10 
+               |___> 3 
 
-                              |___> declaration
-                                   |___> declaration_specifier 
-                                        |___> type_specifier
-                                             |___> int 
+     |___> = 
+          |___> k
 
-                                   |___> declarator 
-                                        |___> b
+          |___> &
+               |___> a 
 
-                                   |___> ; 
+     |___> RETURN 
+          |___> 0
 
-                         |___> declaration 
-                              |___> declaration_specifier
-                                   |___> type_specifier 
-                                        |___> int
-
-
-                              |___> declarator
-                                   |___> * 
-                                   |___> k 
-
-                              |___> ;
-
-
-                    |___> statement_list
-                         |___> statement_list 
-                              |___> statement_list
-                                   |___> statement_list 
-                                        |___> expression_statement
-                                             |___> expression 
-                                                  |___> unary_expression
-                                                       |___> postfix_expression 
-                                                            |___> a
-
-
-                                                  |___> =
-
-                                                  |___> expression
-                                                       |___> logical_or_expression 
-                                                            |___> logical_and_expression
-                                                                 |___> equality_expression 
-                                                                      |___> relational_expression
-                                                                           |___> additive_expression 
-                                                                                |___> multiplicative_expression
-                                                                                     |___> unary_expression 
-                                                                                          |___> postfix_expression
-                                                                                               |___> 0 
-
-
-
-
-
-                                             |___> ; 
-
-                                   |___> expression_statement 
-                                        |___> expression
-                                             |___> unary_expression 
-                                                  |___> postfix_expression
-                                                       |___> b 
-
-                                             |___> = 
-                                             |___> expression 
-                                                  |___> logical_or_expression
-                                                       |___> logical_and_expression 
-                                                            |___> equality_expression
-                                                                 |___> relational_expression 
-                                                                      |___> additive_expression
-                                                                           |___> multiplicative_expression 
-                                                                                |___> unary_expression
-                                                                                     |___> postfix_expression 
-                                                                                          |___> 1
-
-
-
-
-
-
-                                        |___> ;
-
-
-                              |___> expression_statement
-                                   |___> expression 
-                                        |___> unary_expression
-                                             |___> postfix_expression 
-                                                  |___> k
-
-
-                                        |___> =
-
-                                        |___> expression
-                                             |___> logical_or_expression 
-                                                  |___> logical_and_expression
-                                                       |___> equality_expression 
-                                                            |___> relational_expression
-                                                                 |___> additive_expression 
-                                                                      |___> multiplicative_expression
-                                                                           |___> unary_expression 
-                                                                                |___> &
-
-                                                                                |___> unary_expression
-                                                                                     |___> postfix_expression 
-                                                                                          |___> a
-
-
-
-
-
-
-                                   |___> ; 
-
-                         |___> jump_statement 
-                              |___> return
-
-                              |___> expression
-                                   |___> logical_or_expression 
-                                        |___> logical_and_expression
-                                             |___> equality_expression 
-                                                  |___> relational_expression
-                                                       |___> additive_expression 
-                                                            |___> multiplicative_expression
-                                                                 |___> unary_expression 
-                                                                      |___> postfix_expression
-                                                                           |___> 0 
-
-
-
-
-
-                              |___> ;
-
-
-                    |___> }
-
-
-[{ declarator -> NULL }]
+TYPECHECK ==> DEBUT
+i = 0
+i = 1
+i = 2
+i = 3
+i = 5 et res int 
+TYPECHECK ==> OK

@@ -1,4 +1,5 @@
 extern int printd( int i );
+int toto;
 
 int foo(int i);
 
@@ -11,7 +12,7 @@ int foo(int i, int k){
 
 int foo(int i);
 
-int foo(int i, int k){ 
+int foo(int i, int k, int ok){ 
   if(i <= 10)
     return k;
   return 0;

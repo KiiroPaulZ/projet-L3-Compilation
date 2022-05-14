@@ -1,16 +1,5 @@
 /* test minimal pour un compilateur */
-/* ADAAA
-    AAAA */
-/* /* */
-/* 
-*/
-/*extern int camarche();
 
-int foo(){
-  int i;
-  i = -1;
-  return a;
-}*/
 int a;
 
 int main() {
