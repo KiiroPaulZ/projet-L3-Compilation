@@ -88,7 +88,7 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 24 "structfe.y"
+#line 26 "structfe.y"
 {
     char *nom; // represente nom des variables, fonctions, structures
     char* val;

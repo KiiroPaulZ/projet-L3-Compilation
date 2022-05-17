@@ -11,5 +11,5 @@ int main() {
   b = 3;
   c = 10 / 3;
   k = &a;
-  return 0;
+  return a;
 }

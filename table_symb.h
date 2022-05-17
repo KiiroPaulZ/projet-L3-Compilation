@@ -76,7 +76,7 @@ void push(table_t * t);
 table_t ** top();
 symbole_t *rechercher(symbole_t * list, char * name);
 symbole_t *ajouter(symbole_t ** list, char *nom);
-symbole_t * rechercher_global(table_t * t, char * nom, int n, char * mark);
+symbole_t * rechercher_global(table_t * t, char * nom, int n, char * mark); // par defaut mettre n à 0 et mark à ""
 table_t * pop();
 void detruire_table(table_t ** list);
 void print_table();

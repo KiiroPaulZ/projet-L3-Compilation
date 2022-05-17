@@ -19,6 +19,8 @@
         int paramMatching(param_list_t * a, param_list_t * b);
         char * marker = "prog"; // Pour verifier si une variable globale est redefinie !
         char * type_check(nodes_list_t * a);
+        int verifyParamIntegrity(param_list_t * pls);
+        char * generation (node_t * a);
 %}
 
 %union{
@@ -69,7 +71,7 @@ primary_expression
                         $$ = n;
                       }
         | CONSTANT {    //printf("lettre b\n");
-                        node_t * n = NULL; n = create_node(strdup($1), NULL); /*n->type = INT_;*/ $$ = n; 
+                        node_t * n = NULL; n = create_node(strdup($1), NULL); n->isConst = true; $$ = n; 
                    }
         | '(' expression ')' { 
                         //printf("lettre c\n");
@@ -81,7 +83,7 @@ postfix_expression
         : primary_expression { //printf("lettre d\n");
                 $$ = $1; 
         }
-        | postfix_expression '(' ')' {
+        | postfix_expression '(' ')' { // appel de fonction anonyme
                 //printf("lettre e\n");
                 if($1->symb != NULL && $1->symb->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength($1->symb->param_list))){ // Verification s'il s'agit bien d'un appel de fonction et si son nombre de paramètre correspond
                         $$ = $1;
@@ -91,10 +93,10 @@ postfix_expression
                         exit(1);
                 }
         }
-        | postfix_expression '(' argument_expression_list ')' {
+        | postfix_expression '(' argument_expression_list ')' { // appel de fonction
                 //printf("lettre f\n");
                 // S'il s'agit d'une fonction, qu'il a un symbole associé et que la liste des parametres correspond à la liste de parametres définie initialement
-                if($1->symb != NULL && $1->symb->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength($1->symb->param_list))){
+                if($1->symb != NULL && $1->symb->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength($1->symb->param_list)) && verifyParamIntegrity(param_list_stack) == 1){
                         if($1->symb->is_function_def){
                                 //print_complete_table();
                                 clean_param_list_stack(); // Après chaque utilisation il faut penser à clean la pile de parametre globale
@@ -111,7 +113,7 @@ postfix_expression
                                 sy = rechercher_global(pile, $1->symb->nom, n, "");
                                 if(sy == NULL)
                                         break;
-                                if(sy->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength(sy->param_list))){
+                                if(sy->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength(sy->param_list)) && verifyParamIntegrity(param_list_stack) == 1){
                                         //printf("%d - %d| c'est une fun (en f')? %d\n", paramLength(param_list_stack), paramLength(sy->param_list), sy->ts == FONCTION_);
                                         if(sy->is_function_def){
                                                 //print_complete_table();
@@ -609,6 +611,7 @@ program
                                 }             
                         }
                         printf("TYPECHECK ==> OK\n");
+                        printf("%s", generation(arbre->first));
                 }
                 $$ = create_node("prog", mergeNodes(1, $1));
         }
@@ -1238,6 +1241,19 @@ function_definition
                 return count;
         }
 
+        int verifyParamIntegrity(param_list_t * pls){ // Cette fonction vérifie si chaque déclaration est bien formée
+                param_list_t * current = pls;
+                table_t * stack_head = pile;
+                while(current != NULL){
+                        printf("la j'affiche symbole nom : %s\n", current->symbole->nom);
+                        if(rechercher_global(stack_head, current->symbole->nom,0,marker) == NULL && rechercher_global(stack_head, current->symbole->nom,0,"prog") == NULL){ // Si un parametre nn'existe pas alors il y  a un probleme
+                                return 0;
+                        }
+                        current = current->suivant;
+                }
+                return 1;
+        }
+
         char * type_check(nodes_list_t * a){
                 /*printf("la\n");
                 if(a->first != NULL){
@@ -1411,7 +1427,7 @@ function_definition
                         table_t * stack_head = pile;
                         symbole_t * s = NULL;
 
-                        if(isdigit(a->first->name[0])){ // c'est qu'il s'agit d'une constante
+                        if(a->first->isConst == true){ // c'est qu'il s'agit d'une constante
                                 return "int";
                         }
                         
@@ -1441,7 +1457,93 @@ function_definition
                                 }
                         }
                         
-                        printf("TYPECHECK : %s n'est pas géré semble-t-il OU n'existe pas.\n", a->first->name);
+                        printf("%sTYPECHECK: %s n'est pas géré semble-t-il OU n'existe pas.\n", ERROR, a->first->name);
+                        exit(1);
+                }
+        }
+
+        int lengthChildren(node_t * a) {
+                nodes_list_t * children;
+                children = a->children;
+                int acc = 0;
+                while(children != NULL){
+                        acc++;
+                        children = children->next;
+                }
+                return acc;
+        }
+
+        char * concatener(int nbPara, ...){
+                char * res = strdup("");
+                if(nbPara == 0)
+                        return NULL;
+                        
+                va_list ap;    
+                va_start(ap, nbPara);
+                                
+                for(int j = 0; j < nbPara; j++){
+                        char * current = va_arg(ap, char *);
+                        strcat(res, " ");
+                        strcat(res, current);
+                }
+                                
+                va_end(ap);
+                return res;
+        }
+
+        char * generation (node_t * a){
+                // Init
+                nodes_list_t * arbre = a->children; // Premier fils
+                int length_children = lengthChildren(a); // Nb de ses enfants
+                char * codes[length_children];
+                int i = 0;
+
+                // Je recupere dans un premier temps le code des enfants du noeud courant
+                while(arbre != NULL && length_children > 0){
+                        codes[i] = generation(arbre->first);
+                        i++;
+                        arbre = arbre->next;
+                }
+
+                // Je peux maintenant traiter le code du noeud en parametre
+                if(strcmp(a->name, "=") == 0){
+                        return concatener(4, codes[0], " = ", codes[1], ";\n");
+                } else if (strcmp(a->name, "+") == 0) {
+                        return concatener(5, "_t = ", codes[0], " + ", codes[1], ";\n");
+                } /*else if (strcmp(a->name, "-") == 0){ // Il faut aussi verifier s'il s'agit d'une opération unaire
+                        
+                } else if (strcmp(a->name, "*") == 0){ // Il faut aussi vérifier s'il s'agit d'un pointeur
+                        
+                } else if (strcmp(a->name, "/") == 0){
+                        
+                } else if (strcmp(a->name, ">") == 0){
+                        
+                } else if (strcmp(a->name, "<") == 0){
+                        
+                } else if (strcmp(a->name, ">=") == 0){
+                        
+                } else if (strcmp(a->name, "<=") == 0){
+                        
+                } else if (strcmp(a->name, "==") == 0){
+                        
+                } else if (strcmp(a->name, "!=") == 0){
+                        
+                } else if (strcmp(a->name, "&&") == 0){
+                        
+                } else if (strcmp(a->name, "||") == 0){
+                        
+                } else if (strcmp(a->name, "&") == 0){
+                        
+                } else if (strcmp(a->name, "->") == 0){
+                        
+                } else if (strcmp(a->name, ".") == 0){
+
+                }*/ else if (strcmp(a->name, "RETURN") == 0){
+                        return concatener(2, codes[0]);
+                } else { // Soit le cas n'est pas implémenté, soit il s'agit d'une variable ou une constante
+                        if(a->name != NULL)
+                                return a->name;
+                        printf("ERREUR: il y a un pb d'implémentation ... \n");
                         exit(1);
                 }
         }
