@@ -1,8 +1,7 @@
 %{
         #include "nodes.h"
         #include <math.h>
-        #define BUFFER_SIZE 200
-        #define MAX_STRING_SIZE 40
+        
         #define RED "\033[0;31m"
         #define WHITE "\033[0;37m"
         #define PURPLE "\033[0;35m"
@@ -13,13 +12,11 @@
         int yylineno;
         int yyerror(char *);
 
-        void print_table();
-        void semanticAnalysis(nodes_list_t * n);
-        int paramMatching(param_list_t * a, param_list_t * b);
-        char * marker = "prog"; // Pour verifier si une variable globale est redefinie !
-        char * type_check(nodes_list_t * a);
-        int verifyParamIntegrity(param_list_t * pls);
-        code_info * generation (node_t * a);
+        char * marker = "prog"; // Marque par défaut, pour verifier si une variable globale est redefinie
+
+        char * type_check(nodes_list_t * a); // Partie finale de l'analyse sémantique, on vérifie le typage et si les opérations sont correctes sur la représentation intermédiaire
+        int verifyParamIntegrity(param_list_t * pls); // Vérifie si chaque déclaration est bien formée (présence des paramètres dans ts)
+        code_info * generation (node_t * a); // après l'analyse sémantique, génération du code en partant de la racine
 %}
 
 %union{
@@ -109,8 +106,8 @@ postfix_expression
                                                 printf("%sLigne %d, La fonction '%s' existe, mais il n'y a aucune reference.\n", ERROR, yylineno, $1->name);
                                                 exit(1);
                                         }
-                                } else {
-                                        //printf("j'ai trouvé une occurence mais pas le bon nb de params\n");
+                                } else { // Une occurence a été trouvé mais pas le bon nb de params
+                                        
                                 }
 
                                 n++;
@@ -140,7 +137,7 @@ postfix_expression
 
 argument_expression_list
         : expression    {
-                                // On sauvegarde des informations pour le paramètre dans la ts et on l'ajoute à la pile des paramètres courants
+                                // On sauvegarde des informations pour le paramètre dans la TS et on l'ajoute à la pile des paramètres courants
                                 if($1->symb == NULL){
                                         symbole_t * s = malloc(sizeof(symbole_t));
                                         s->nom = $1->name;
@@ -1139,11 +1136,11 @@ function_definition
                 return count;
         }
 
-        int verifyParamIntegrity(param_list_t * pls){ // Cette fonction vérifie si chaque déclaration est bien formée
+        int verifyParamIntegrity(param_list_t * pls){
                 param_list_t * current = pls;
                 table_t * stack_head = pile;
                 while(current != NULL){
-                        if(rechercher_global(stack_head, current->symbole->nom,0,marker) == NULL && rechercher_global(stack_head, current->symbole->nom,0,"prog") == NULL){ // Si un parametre nn'existe pas alors il y  a un probleme
+                        if(rechercher_global(stack_head, current->symbole->nom,0,marker) == NULL && rechercher_global(stack_head, current->symbole->nom,0,"prog") == NULL){ // Si un parametre n'existe pas alors il y  a un probleme
                                 return 0;
                         }
                         current = current->suivant;
