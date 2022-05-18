@@ -10,6 +10,7 @@ IS                      (u|U|l|L)*
     /* Supprimer les lignes dont vous n'avez pas besoin. */
 %}
 %option yylineno
+%option noyywrap
 %%
 <<EOF>>                 { exit(0); }
 "/*"([^*]|(\*+[^*/]))*\**"*/" {;}

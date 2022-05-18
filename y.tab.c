@@ -131,8 +131,8 @@
         #define ERROR RED"ERROR: "WHITE
         #define WARNING PURPLE"WARNING: "WHITE
 
-        int yylex();
-        int yylineno;
+        extern int yylex();
+        extern int yylineno;
         int yyerror(char *);
 
         char * marker = "prog"; // Marque par défaut, pour verifier si une variable globale est redefinie
