@@ -1,6 +1,12 @@
 %{
         #include "nodes.h"
         #include <math.h>
+
+        /* Variables globales */
+        int pos; // Pointeur sur une case disponible en mémoire
+        param_list_t * param_list_stack; 
+        field_list_t * field_list_stack; 
+        table_t *pile; // TS
         
         #define RED "\033[0;31m"
         #define WHITE "\033[0;37m"

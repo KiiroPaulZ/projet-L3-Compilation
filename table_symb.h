@@ -51,13 +51,6 @@ typedef struct _code_info { // Encapsulation textuelle pour sa représentation d
     char * val;
 } code_info;
 
-/* Variables globales */
-int pos; // Pointeur sur une case disponible en mémoire
-param_list_t * param_list_stack; 
-field_list_t * field_list_stack; 
-table_t *pile; // TS
-
-
 // Primitives pour la pile de parametres
 void addParam(param_list_t ** st, symbole_t * s); // Ajouter un parametre à la liste 
 param_list_t * copyParamList(param_list_t * stack); // Fait une copie de la liste de parametres
