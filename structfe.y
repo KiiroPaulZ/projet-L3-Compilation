@@ -291,7 +291,23 @@ declaration
                                                                         clean_param_list_stack();
                                                                 }
                                                                 s->marker = marker;
-                                                                s->taille = sizeof($1->type);
+
+                                                                if($1->type == INT_){
+                                                                        if(s->isPtr == true){
+                                                                                s->taille = sizeof(8);
+                                                                        } else {
+                                                                                s->taille = sizeof(4);
+                                                                        }
+                                                                } else if ($1->type == VOID_){
+                                                                        if(s->isPtr == true){
+                                                                             s->taille = sizeof(8);
+                                                                        } else {
+                                                                                s->taille = 0;
+                                                                        }
+                                                                } else { // Cas si c'est de type STRUCT_
+                                                                        s->taille = sizeof(4);
+                                                                }
+
                                                                 s->position = pos;
                                                                 s->suivant = NULL;
                                                                 pos += s->taille;
@@ -523,56 +539,12 @@ program
                                                         i++;
                                                 }
                                                 i++;
-                                                switch(arbre->first->symb->type){
-                                                        case INT_ :{
-                                                                if(strcmp(type_check(current), "int") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "int *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "int") != 0 && strcmp(type_check(current), "int *") != 0)){
-                                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
-                                                                        exit(1);
-                                                                }
-                                                                break;
-                                                        }
-
-                                                        case VOID_ : {
-                                                                if(strcmp(type_check(current), "void") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "void *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "void") != 0 && strcmp(type_check(current), "void *") != 0)){
-                                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
-                                                                        exit(1);
-                                                                }
-                                                                break;
-                                                        }
-
-                                                        default : { // STRUCT_
-                                                                if(strcmp(type_check(current), "struct") != 0){
-                                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
-                                                                        exit(1);
-                                                                }
-                                                                break;
-                                                        }             
-                                                }
-                                                printf("%s\n", generation(arbre->first)->code);
-                                                printf("TYPECHECK ==> OK\n");
-                                        }
-                                        $$ = create_node("prog", mergeNodes(1, $1));
-                                }
-        | program external_declaration {
-                                                print_complete_table();
-                                                nodes_list_t * arbre = NULL;
-                                                if($2 != NULL){
-                                                        arbre = mergeNodes(1, $2);
-                                                        print_tree(arbre, "");
-                                                        nodes_list_t * current = arbre->first->children;
-                                                        int i = 0;
-                                                        while(current->next != NULL){ // je ne gere pas le return pour le moment
-                                                                type_check(current);
-                                                                current = current->next;
-                                                                i++;
-                                                        }
-                                                        i++;
-
-                                                        if(strcmp(current->first->name, "RETURN") != 0 && arbre->first->symb->type != VOID_){
+                                                
+                                                if(strcmp(current->first->name, "RETURN") != 0 && arbre->first->symb->type != VOID_){
                                                                 printf("%sIl n'y a pas de fonction de retour alors que la fonction n'est pas de type void.\n", ERROR);
                                                                 exit(1);
-                                                        } else if (strcmp(current->first->name, "RETURN") != 0 && arbre->first->symb->type == VOID_ && arbre->first->symb->isPtr == false){
-                                                                /* il n'y a rien a faire */
+                                                        } else if (strcmp(current->first->name, "RETURN") != 0 && arbre->first->symb->type == VOID_){
+                                                                /* pas implémenté */
                                                         } else {
                                                                 switch(arbre->first->symb->type){
                                                                         case INT_ :{
@@ -600,7 +572,61 @@ program
                                                                         }             
                                                                 }
                                                         }
-                                                        printf("TYPECHECK ==> OK\n");    
+                                                
+                                                printf("TYPECHECK ==> OK\n");
+                                                printf("%s\n", generation(arbre->first)->code);
+                                        }
+                                        $$ = create_node("prog", mergeNodes(1, $1));
+                                }
+        | program external_declaration {
+                                                print_complete_table();
+                                                nodes_list_t * arbre = NULL;
+                                                if($2 != NULL){
+                                                        arbre = mergeNodes(1, $2);
+                                                        print_tree(arbre, "");
+                                                        nodes_list_t * current = arbre->first->children;
+                                                        int i = 0;
+                                                        while(current->next != NULL){ // je ne gere pas le return pour le moment
+                                                                type_check(current);
+                                                                current = current->next;
+                                                                i++;
+                                                        }
+                                                        i++;
+
+                                                        if(strcmp(current->first->name, "RETURN") != 0 && arbre->first->symb->type != VOID_){
+                                                                printf("%sIl n'y a pas de fonction de retour alors que la fonction n'est pas de type void.\n", ERROR);
+                                                                exit(1);
+                                                        } else if (strcmp(current->first->name, "RETURN") != 0 && arbre->first->symb->type == VOID_){
+                                                                /* pas implémenté */
+                                                        } else {
+                                                                switch(arbre->first->symb->type){
+                                                                        case INT_ :{
+                                                                                if(strcmp(type_check(current), "int") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "int *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "int") != 0 && strcmp(type_check(current), "int *") != 0)){
+                                                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
+                                                                                        exit(1);
+                                                                                }
+                                                                                break;
+                                                                        }
+
+                                                                        case VOID_ : {
+                                                                                if(strcmp(type_check(current), "void") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "void *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "void") != 0 && strcmp(type_check(current), "void *") != 0)){
+                                                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
+                                                                                        exit(1);
+                                                                                }
+                                                                                break;
+                                                                        }
+
+                                                                        default : { // STRUCT_
+                                                                                if(strcmp(type_check(current), "struct") != 0){
+                                                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
+                                                                                        exit(1);
+                                                                                }
+                                                                                break;
+                                                                        }             
+                                                                }
+                                                        }
+                                                        printf("TYPECHECK ==> OK\n");
+                                                        printf("%s\n", generation(arbre->first)->code); 
                                                 }
                                                 $$ = create_node("prog", mergeNodes(1, $2));
                                         }
