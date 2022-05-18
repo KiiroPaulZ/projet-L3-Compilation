@@ -125,19 +125,18 @@
         #define PURPLE "\033[0;35m"
         #define ERROR RED"ERROR: "WHITE
         #define WARNING PURPLE"WARNING: "WHITE
+
         int yylex();
         int yylineno;
         int yyerror(char *);
-        table_t *pile;
-        //param_list_stack_t * param_list_stack;
-        //int pos;
+
         void print_table();
         void semanticAnalysis(nodes_list_t * n);
         int paramMatching(param_list_t * a, param_list_t * b);
         char * marker = "prog"; // Pour verifier si une variable globale est redefinie !
         char * type_check(nodes_list_t * a);
         int verifyParamIntegrity(param_list_t * pls);
-        char * genereration (node_t * a);
+        code_info * generation (node_t * a);
 
 
 /* Enabling traces.  */
@@ -160,21 +159,21 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 26 "structfe.y"
+#line 25 "structfe.y"
 {
-    char *nom; // represente nom des variables, fonctions, structures
-    char* val;
-    type_t type; // int ou void (variable ou fonction)
-    // Une fonction prend 0 OU N parametre(s)
-    param_t param; //
-    param_list_t * param_list;
-    //liste_t *liste; // liste de parametres
-    node_t * node;
-    nodes_list_t * node_list;
-    symbole_t * symb;
+        char *nom; // represente nom des variables, fonctions, structures
+        char* val;
+
+        /*type_t type; // int ou void (variable ou fonction)
+        param_t param; 
+        param_list_t * param_list;*/
+
+        node_t * node;
+        nodes_list_t * node_list;
+        symbole_t * symb;
 }
 /* Line 193 of yacc.c.  */
-#line 178 "y.tab.c"
+#line 177 "y.tab.c"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -187,7 +186,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 191 "y.tab.c"
+#line 190 "y.tab.c"
 
 #ifdef short
 # undef short
@@ -506,15 +505,15 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    64,    64,    73,    76,    83,    86,    96,   147,   153,
-     162,   172,   184,   185,   192,   199,   200,   201,   205,   206,
-     207,   211,   212,   213,   217,   218,   219,   220,   221,   225,
-     226,   227,   231,   232,   236,   237,   241,   242,   248,   340,
-     374,   396,   400,   401,   402,   406,   415,   416,   423,   424,
-     428,   446,   453,   457,   458,   459,   460,   464,   468,   475,
-     493,   494,   495,   496,   497,   501,   502,   503,   504,   507,
-     508,   522,   523,   527,   528,   532,   533,   537,   538,   542,
-     543,   547,   548,   551,   569,   618,   676,   677,   681,   753
+       0,    63,    63,    72,    73,    77,    78,    87,   129,   134,
+     142,   151,   163,   164,   169,   173,   174,   175,   179,   180,
+     181,   185,   186,   187,   191,   192,   193,   194,   195,   199,
+     200,   201,   205,   206,   210,   211,   215,   216,   220,   297,
+     329,   354,   358,   359,   360,   364,   372,   373,   377,   378,
+     382,   399,   405,   409,   410,   411,   412,   416,   417,   421,
+     438,   439,   440,   441,   442,   446,   447,   448,   449,   452,
+     453,   469,   470,   474,   475,   479,   480,   484,   485,   489,
+     490,   494,   495,   498,   508,   553,   607,   608,   612,   681
 };
 #endif
 
@@ -1544,8 +1543,8 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 64 "structfe.y"
-    { //printf("lettre a\n");
+#line 63 "structfe.y"
+    { 
                         symbole_t * s = NULL;
                         node_t * n = NULL;
                         table_t * stack_head = pile;
@@ -1557,31 +1556,23 @@ yyreduce:
     break;
 
   case 3:
-#line 73 "structfe.y"
-    {    //printf("lettre b\n");
-                        node_t * n = NULL; n = create_node(strdup((yyvsp[(1) - (1)].val)), NULL); n->isConst = true; (yyval.node) = n; 
-                   }
+#line 72 "structfe.y"
+    { node_t * n = NULL; n = create_node(strdup((yyvsp[(1) - (1)].val)), NULL); n->isConst = true; (yyval.node) = n; }
     break;
 
   case 4:
-#line 76 "structfe.y"
-    { 
-                        //printf("lettre c\n");
-                        (yyval.node) = (yyvsp[(2) - (3)].node); 
-                }
+#line 73 "structfe.y"
+    { (yyval.node) = (yyvsp[(2) - (3)].node); }
     break;
 
   case 5:
-#line 83 "structfe.y"
-    { //printf("lettre d\n");
-                (yyval.node) = (yyvsp[(1) - (1)].node); 
-        }
+#line 77 "structfe.y"
+    { (yyval.node) = (yyvsp[(1) - (1)].node); }
     break;
 
   case 6:
-#line 86 "structfe.y"
+#line 78 "structfe.y"
     { // appel de fonction anonyme
-                //printf("lettre e\n");
                 if((yyvsp[(1) - (3)].node)->symb != NULL && (yyvsp[(1) - (3)].node)->symb->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength((yyvsp[(1) - (3)].node)->symb->param_list))){ // Verification s'il s'agit bien d'un appel de fonction et si son nombre de paramètre correspond
                         (yyval.node) = (yyvsp[(1) - (3)].node);
                 } else {
@@ -1593,31 +1584,26 @@ yyreduce:
     break;
 
   case 7:
-#line 96 "structfe.y"
+#line 87 "structfe.y"
     { // appel de fonction
-                //printf("lettre f\n");
                 // S'il s'agit d'une fonction, qu'il a un symbole associé et que la liste des parametres correspond à la liste de parametres définie initialement
                 if((yyvsp[(1) - (4)].node)->symb != NULL && (yyvsp[(1) - (4)].node)->symb->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength((yyvsp[(1) - (4)].node)->symb->param_list)) && verifyParamIntegrity(param_list_stack) == 1){
                         if((yyvsp[(1) - (4)].node)->symb->is_function_def){
-                                //print_complete_table();
                                 clean_param_list_stack(); // Après chaque utilisation il faut penser à clean la pile de parametre globale
                                 (yyval.node) = (yyvsp[(1) - (4)].node);
                         } else {
                                 printf("%sLigne %d, La fonction '%s' existe, mais il n'y a aucune reference.\n", ERROR, yylineno, (yyvsp[(1) - (4)].node)->name);
                                 exit(1);
                         }
-                } else if((yyvsp[(1) - (4)].node)->symb != NULL && (yyvsp[(1) - (4)].node)->symb->ts == FONCTION_) { // peut-etre existe-il une surcharge de cette fonction
-                        //printf("%d - %d| c'est une fun (en f')? %d\n", paramLength(param_list_stack), paramLength($1->symb->param_list), $1->symb->ts == FONCTION_);
+                } else if((yyvsp[(1) - (4)].node)->symb != NULL && (yyvsp[(1) - (4)].node)->symb->ts == FONCTION_) { // peut-etre existe-il une "surcharge" de cette fonction
                         int n = 1;
                         symbole_t * sy = NULL;
-                        while(sy == NULL){ // Tant qu'il y a des occurences de la fonction, on regarde ses surcharges
+                        while(sy == NULL){ // Tant qu'il y a des occurences de la fonction, on regarde "ses surcharges"
                                 sy = rechercher_global(pile, (yyvsp[(1) - (4)].node)->symb->nom, n, "");
                                 if(sy == NULL)
                                         break;
                                 if(sy->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength(sy->param_list)) && verifyParamIntegrity(param_list_stack) == 1){
-                                        //printf("%d - %d| c'est une fun (en f')? %d\n", paramLength(param_list_stack), paramLength(sy->param_list), sy->ts == FONCTION_);
-                                        if(sy->is_function_def){
-                                                //print_complete_table();
+                                        if(sy->is_function_def) {
                                                 clean_param_list_stack(); // Après chaque utilisation il faut penser à clean la pile de parametre globale
                                                 (yyval.node) = (yyvsp[(1) - (4)].node);
                                         } else {
@@ -1631,26 +1617,21 @@ yyreduce:
                                 n++;
                         }
                         if(sy == NULL){
-                                //print_complete_table();
-                                //printf("%d - %d| c'est une fun (en f2)? %d\n", paramLength(param_list_stack), paramLength($1->symb->param_list), $1->symb->ts == FONCTION_);
                                 clean_param_list_stack();
                                 printf("%sLigne %d, la fonction n'est pas déclaré et/ou le nombre de paramètres n'est pas valide!\n",ERROR, yylineno);
                                 exit(1);
                         }
-                }else {
-                        //print_complete_table();
-                        //printf("%d - %d| c'est une fun (en f)? %d\n", paramLength(param_list_stack), paramLength($1->symb->param_list), $1->symb->ts == FONCTION_);
-                        clean_param_list_stack();
-                        printf("%sLigne %d, la fonction n'est pas déclaré et/ou le nombre de paramètres n'est pas valide!\n",ERROR, yylineno);
-                        exit(1);
-                }
+                } else  {
+                                clean_param_list_stack();
+                                printf("%sLigne %d, la fonction n'est pas déclaré et/ou le nombre de paramètres n'est pas valide!\n",ERROR, yylineno);
+                                exit(1);
+                        }
         }
     break;
 
   case 8:
-#line 147 "structfe.y"
-    { 
-                                                //printf("lettre g\n");
+#line 129 "structfe.y"
+    {
                                                 node_t * n = NULL; 
                                                 n = create_node(".", mergeNodes(2, (yyvsp[(1) - (3)].node), create_node(strdup((yyvsp[(3) - (3)].nom)), NULL))); 
                                                 (yyval.node) = n;
@@ -1658,188 +1639,177 @@ yyreduce:
     break;
 
   case 9:
-#line 153 "structfe.y"
+#line 134 "structfe.y"
     { 
-                //printf("lettre h\n");
-                                                node_t * n = NULL; 
-                                                n = create_node("->", mergeNodes(2, (yyvsp[(1) - (3)].node), create_node(strdup((yyvsp[(3) - (3)].nom)), NULL))); 
-                                                (yyval.node) = n; 
-                                               }
+                                                        node_t * n = NULL; 
+                                                        n = create_node("->", mergeNodes(2, (yyvsp[(1) - (3)].node), create_node(strdup((yyvsp[(3) - (3)].nom)), NULL))); 
+                                                        (yyval.node) = n; 
+                                                }
     break;
 
   case 10:
-#line 162 "structfe.y"
+#line 142 "structfe.y"
     {
-                // On sauvegarde des informations pour le paramètre dans la ts et on l'ajoute à la pile des paramètres courants
-                //printf("lettre i\n");
-                if((yyvsp[(1) - (1)].node)->symb == NULL){
-                        symbole_t * s = malloc(sizeof(symbole_t));
-                        s->nom = (yyvsp[(1) - (1)].node)->name;
-                        (yyvsp[(1) - (1)].node)->symb = s;
-                }
-                addParam(&param_list_stack, (yyvsp[(1) - (1)].node)->symb);
-        }
+                                // On sauvegarde des informations pour le paramètre dans la ts et on l'ajoute à la pile des paramètres courants
+                                if((yyvsp[(1) - (1)].node)->symb == NULL){
+                                        symbole_t * s = malloc(sizeof(symbole_t));
+                                        s->nom = (yyvsp[(1) - (1)].node)->name;
+                                        (yyvsp[(1) - (1)].node)->symb = s;
+                                }
+                                addParam(&param_list_stack, (yyvsp[(1) - (1)].node)->symb);
+                        }
     break;
 
   case 11:
-#line 172 "structfe.y"
+#line 151 "structfe.y"
     {
-                //printf("lettre j\n");
-                if((yyvsp[(3) - (3)].node)->symb == NULL){ // Si le noeud n'a pas de symbole c'est qu'il s'agit d'une opération, donc on lui creer un symbole "vide"
-                        symbole_t * s = malloc(sizeof(symbole_t));
-                        s->nom = (yyvsp[(3) - (3)].node)->name;
-                        (yyvsp[(3) - (3)].node)->symb = s;
-                }
-                addParam(&param_list_stack, (yyvsp[(3) - (3)].node)->symb);
-        }
+
+                                                                if((yyvsp[(3) - (3)].node)->symb == NULL){ // Si le noeud n'a pas de symbole c'est qu'il s'agit d'une opération, donc on lui creer un symbole "vide"
+                                                                        symbole_t * s = malloc(sizeof(symbole_t));
+                                                                        s->nom = (yyvsp[(3) - (3)].node)->name;
+                                                                        (yyvsp[(3) - (3)].node)->symb = s;
+                                                                }
+                                                                addParam(&param_list_stack, (yyvsp[(3) - (3)].node)->symb);
+                                                        }
     break;
 
   case 12:
-#line 184 "structfe.y"
-    {(yyval.node) = (yyvsp[(1) - (1)].node);}
+#line 163 "structfe.y"
+    { (yyval.node) = (yyvsp[(1) - (1)].node); }
     break;
 
   case 13:
-#line 185 "structfe.y"
+#line 164 "structfe.y"
     {
-                                                //printf("lettre k\n");
                                                 node_t * n = NULL;
                                                 n = create_node(strdup((yyvsp[(1) - (2)].nom)), mergeNodes(1,(yyvsp[(2) - (2)].node)));
-                                                //n->type = $2->type;
                                                 (yyval.node) = n;
                                           }
     break;
 
   case 14:
-#line 192 "structfe.y"
-    {
-                //printf("lettre l\n");
-                (yyval.node) = create_node("SIZEOF", mergeNodes(1,(yyvsp[(2) - (2)].node)));
-        }
+#line 169 "structfe.y"
+    { (yyval.node) = create_node("SIZEOF", mergeNodes(1,(yyvsp[(2) - (2)].node))); }
     break;
 
   case 15:
-#line 199 "structfe.y"
-    {(yyval.nom)="&";}
+#line 173 "structfe.y"
+    { (yyval.nom)="&"; }
     break;
 
   case 16:
-#line 200 "structfe.y"
-    {(yyval.nom)="*";}
+#line 174 "structfe.y"
+    { (yyval.nom)="*"; }
     break;
 
   case 17:
-#line 201 "structfe.y"
-    {(yyval.nom)="-";}
+#line 175 "structfe.y"
+    { (yyval.nom)="-"; }
     break;
 
   case 18:
-#line 205 "structfe.y"
-    {(yyval.node) = (yyvsp[(1) - (1)].node);}
+#line 179 "structfe.y"
+    { (yyval.node) = (yyvsp[(1) - (1)].node); }
     break;
 
   case 19:
-#line 206 "structfe.y"
-    {(yyval.node) = create_node("*", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
+#line 180 "structfe.y"
+    { (yyval.node) = create_node("*", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node))); }
     break;
 
   case 20:
-#line 207 "structfe.y"
-    {(yyval.node) = create_node("/", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
+#line 181 "structfe.y"
+    { (yyval.node) = create_node("/", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node))); }
     break;
 
   case 21:
-#line 211 "structfe.y"
-    {(yyval.node) = (yyvsp[(1) - (1)].node);}
+#line 185 "structfe.y"
+    { (yyval.node) = (yyvsp[(1) - (1)].node); }
     break;
 
   case 22:
-#line 212 "structfe.y"
-    {(yyval.node) = create_node("+", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
+#line 186 "structfe.y"
+    { (yyval.node) = create_node("+", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node))); }
     break;
 
   case 23:
-#line 213 "structfe.y"
-    {(yyval.node) = create_node("-", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
+#line 187 "structfe.y"
+    { (yyval.node) = create_node("-", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node))); }
     break;
 
   case 24:
-#line 217 "structfe.y"
-    {(yyval.node) = (yyvsp[(1) - (1)].node);}
+#line 191 "structfe.y"
+    { (yyval.node) = (yyvsp[(1) - (1)].node); }
     break;
 
   case 25:
-#line 218 "structfe.y"
-    {(yyval.node) = create_node("<", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
+#line 192 "structfe.y"
+    { (yyval.node) = create_node("<", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node))); }
     break;
 
   case 26:
-#line 219 "structfe.y"
-    {(yyval.node) = create_node(">", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
+#line 193 "structfe.y"
+    { (yyval.node) = create_node(">", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node))); }
     break;
 
   case 27:
-#line 220 "structfe.y"
-    {(yyval.node) = create_node("<=", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
+#line 194 "structfe.y"
+    { (yyval.node) = create_node("<=", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node))); }
     break;
 
   case 28:
-#line 221 "structfe.y"
-    {(yyval.node) = create_node(">=", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
+#line 195 "structfe.y"
+    { (yyval.node) = create_node(">=", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node))); }
     break;
 
   case 29:
-#line 225 "structfe.y"
-    {(yyval.node) = (yyvsp[(1) - (1)].node);}
+#line 199 "structfe.y"
+    { (yyval.node) = (yyvsp[(1) - (1)].node); }
     break;
 
   case 30:
-#line 226 "structfe.y"
-    {(yyval.node) = create_node("==", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
+#line 200 "structfe.y"
+    { (yyval.node) = create_node("==", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node))); }
     break;
 
   case 31:
-#line 227 "structfe.y"
-    {(yyval.node) = create_node("!=", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
+#line 201 "structfe.y"
+    { (yyval.node) = create_node("!=", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node))); }
     break;
 
   case 32:
-#line 231 "structfe.y"
-    {(yyval.node) = (yyvsp[(1) - (1)].node);}
+#line 205 "structfe.y"
+    { (yyval.node) = (yyvsp[(1) - (1)].node); }
     break;
 
   case 33:
-#line 232 "structfe.y"
-    {(yyval.node) = create_node("&&", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
+#line 206 "structfe.y"
+    { (yyval.node) = create_node("&&", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node))); }
     break;
 
   case 34:
-#line 236 "structfe.y"
-    {(yyval.node) = (yyvsp[(1) - (1)].node);}
+#line 210 "structfe.y"
+    { (yyval.node) = (yyvsp[(1) - (1)].node); }
     break;
 
   case 35:
-#line 237 "structfe.y"
-    {(yyval.node) = create_node("||", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));}
+#line 211 "structfe.y"
+    { (yyval.node) = create_node("||", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node))); }
     break;
 
   case 36:
-#line 241 "structfe.y"
-    {(yyval.node) = (yyvsp[(1) - (1)].node);}
+#line 215 "structfe.y"
+    { (yyval.node) = (yyvsp[(1) - (1)].node); }
     break;
 
   case 37:
-#line 242 "structfe.y"
-    {
-                (yyval.node) = create_node("=", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node)));
-        }
+#line 216 "structfe.y"
+    { (yyval.node) = create_node("=", mergeNodes(2,(yyvsp[(1) - (3)].node),(yyvsp[(3) - (3)].node))); }
     break;
 
   case 38:
-#line 248 "structfe.y"
+#line 220 "structfe.y"
     {       
-                                                        //printf("lettre m %s\n", $2->name);
-
                                                         if((yyvsp[(1) - (3)].node)->type == VOID_){
                                                                 printf("%sLigne %d, vous ne pouvez pas déclarer une variable de type void.\n", ERROR, yylineno);
                                                                 exit(1);
@@ -1849,18 +1819,15 @@ yyreduce:
                                                         table_t * stack_head = pile;
                                                         
                                                         if(stack_head == NULL){
-                                                                //printf("l%d stackhead null\n", yylineno);
-                                                                table_t *table = nouvelle_table(); push(table); // Si la pile est vide on l'initialise
+                                                                table_t *table = nouvelle_table(); // Si la pile est vide on l'initialise
+                                                                push(table); 
                                                         }
                                                         
                                                         table_t * current = stack_head;
 
                                                         if((yyvsp[(1) - (3)].node)->type == STRUCT_){
-                                                                printf("il a vu (l %d) que ct un struct %s\n",yylineno, (yyvsp[(1) - (3)].node)->children->first->name);
-                                                                //print_complete_table();
+                                                                symbole_t * s = rechercher_global(current->preced, (yyvsp[(1) - (3)].node)->children->first->name, 0, ""); 
 
-                                                                symbole_t * s = rechercher_global(current->preced, (yyvsp[(1) - (3)].node)->children->first->name, 0, ""); //rechercher(current->preced->symbole, $1->children->first->name);
-                                                                //printf("res : %d\n", s != NULL);
                                                                 if(s == NULL){
                                                                         printf("%sLigne %d, cette structure n'est pas définie.\n",ERROR, yylineno);
                                                                         exit(1);
@@ -1874,22 +1841,15 @@ yyreduce:
 
                                                         if(stack_head != NULL && stack_head->preced != NULL && stack_head->preced->symbole != NULL)
                                                                 s2 = rechercherStack((getSymbole(stack_head->preced->symbole,-1))->param_list, (yyvsp[(2) - (3)].node)->name); // Je vérifie aussi si ce que je déclare n'a pas le meme nom qu'un parametre dans la définition de fonction courante
-                                                        //printf("s2 vaut %d\n", s2 != NULL);
                                                        
                                                         if(s != NULL && s->ts != FONCTION_ && strcmp(s->marker, marker) == 0 || ((rechercher_global(pile, (yyvsp[(2) - (3)].node)->name, 0, "prog")) != NULL && strcmp((rechercher_global(pile, (yyvsp[(2) - (3)].node)->name, 0, "prog"))->marker, marker) == 0) && (rechercher_global(pile, (yyvsp[(2) - (3)].node)->name, 0, "prog"))->ts != FONCTION_ ){
-                                                                //print_complete_table();
-                                                                //printf("current mark : %s\n", marker);
-                                                                //printf("%d / %d\n", s != NULL && s->ts != FONCTION_ , ((rechercher_global(pile, $2->name, 0, "prog")) != NULL && strcmp((rechercher_global(pile, $2->name, 0, "prog"))->marker, "prog") == 0) && (rechercher_global(pile, $2->name, 0, "prog"))->ts != FONCTION_ );
                                                                 printf("%sLigne %d, la variable '%s' a déjà été déclarée.\n", ERROR, yylineno, (yyvsp[(2) - (3)].node)->name);
-                                                                //print_table();
                                                                 exit(1);
                                                         } else if (s2 != NULL) {
-                                                                //print_complete_table();
                                                                 printf("%sLigne %d, vous ne pouvez pas déclarer %s car elle est défini en parametre de fonction.\n", ERROR, yylineno, (yyvsp[(2) - (3)].node)->name);
                                                                 exit(1);
                                                          }else if (s != NULL && s->ts == FONCTION_){ 
                                                                 s->param_list = copyParamList(param_list_stack);
-                                                                //displayParam(s->param_list);
                                                                 clean_param_list_stack();
                                                          }else {
                                                                 while(current != NULL){ // je vérifie si la variable a deja été declaré
@@ -1900,7 +1860,7 @@ yyreduce:
                                                                         }
                                                                         current  = current ->preced;
                                                                 }
-                                                                //printf("ALORRS '%s'? %d\n", $2->name, rechercher_global(stack_head, $2->name, 0, "prog") != NULL);
+
                                                                 if(((rechercher_global(pile, (yyvsp[(2) - (3)].node)->name, 0, "prog")) != NULL && strcmp((rechercher_global(pile, (yyvsp[(2) - (3)].node)->name, 0, "prog"))->marker, "prog") == 0) && (rechercher_global(pile, (yyvsp[(2) - (3)].node)->name, 0, "prog"))->ts != FONCTION_ ) // le -1 pour regarde les déclarations globales
                                                                         printf("%sLigne %d, la variable '%s' en masque une autre.\n", WARNING, yylineno, (yyvsp[(2) - (3)].node)->name);
                                                                 table_t * t = *top(); // Le symbole n'existe pas, il faut le définir
@@ -1917,7 +1877,6 @@ yyreduce:
                                                                 s->ts = (yyvsp[(2) - (3)].node)->ts_t;
                                                                 if(param_list_stack != NULL){ // S'il a des paramètres, on les sauvegardes
                                                                         s->param_list = copyParamList(param_list_stack);
-                                                                        //displayParam(s->param_list);
                                                                         clean_param_list_stack();
                                                                 }
                                                                 s->marker = marker;
@@ -1925,21 +1884,18 @@ yyreduce:
                                                                 s->position = pos;
                                                                 s->suivant = NULL;
                                                                 pos += s->taille;
-                                                                //printf("FIN DELCARATION DE %s\n", $2->name);
-                                                                //print_complete_table();
                                                         }
                                                 }
     break;
 
   case 39:
-#line 340 "structfe.y"
+#line 297 "structfe.y"
     {
                 symbole_t *s = NULL;
                 table_t * stack_head = pile;
                 table_t * current = stack_head;
                 
                 if(stack_head == NULL){
-                        //printf("l%d stackhead null\n", yylineno);
                         table_t *table = nouvelle_table(); push(table); // Si la pile est vide on l'initialise
                 }
 
@@ -1948,7 +1904,6 @@ yyreduce:
 
                 if(s != NULL && s->field_list != NULL){
                         printf("%sLigne %d, la structure '%s' a déjà été déclarée.\n", ERROR, yylineno, (yyvsp[(1) - (2)].node)->name);
-                        //print_table();
                         exit(1);
                 } else {
                         table_t * t = *top(); // Le symbole n'existe pas, il faut le définir
@@ -1967,162 +1922,152 @@ yyreduce:
     break;
 
   case 40:
-#line 374 "structfe.y"
-    {       //printf("lettre n\n");
+#line 329 "structfe.y"
+    {
                                         switch((yyvsp[(2) - (2)].node)->type){
-                                                case INT_:{ 
-                                                        node_t * n = create_node("type_EXTERN_INT", NULL);
-                                                        n->type = EXTERN_INT_;
-                                                        n->ts_t = FONCTION_;
-                                                        (yyval.node) = n;
-                                                        break;}
-                                                case VOID_:{
-                                                        node_t * n = create_node("type_EXTERN_VOID", NULL);
-                                                        n->type = EXTERN_VOID_;
-                                                        n->ts_t = FONCTION_;
-                                                        (yyval.node) = n;
-                                                        break;}
-                                                default:{
-                                                        node_t * n = create_node("type_EXTERN_STRUCT", NULL);
-                                                        n->type = EXTERN_STRUCT_;
-                                                        n->ts_t = FONCTION_;
-                                                        (yyval.node) = n;
-                                                        break;}
+                                                case INT_:      { 
+                                                                        node_t * n = create_node("type_EXTERN_INT", NULL);
+                                                                        n->type = EXTERN_INT_;
+                                                                        n->ts_t = FONCTION_;
+                                                                        (yyval.node) = n;
+                                                                        break;
+                                                                }
+                                                case VOID_:     {
+                                                                        node_t * n = create_node("type_EXTERN_VOID", NULL);
+                                                                        n->type = EXTERN_VOID_;
+                                                                        n->ts_t = FONCTION_;
+                                                                        (yyval.node) = n;
+                                                                        break;
+                                                                }
+                                                default:        {
+                                                                        node_t * n = create_node("type_EXTERN_STRUCT", NULL);
+                                                                        n->type = EXTERN_STRUCT_;
+                                                                        n->ts_t = FONCTION_;
+                                                                        (yyval.node) = n;
+                                                                        break;
+                                                                }
                                         }
                                 }
     break;
 
   case 41:
-#line 396 "structfe.y"
-    {(yyval.node) = (yyvsp[(1) - (1)].node);}
+#line 354 "structfe.y"
+    { (yyval.node) = (yyvsp[(1) - (1)].node); }
     break;
 
   case 42:
-#line 400 "structfe.y"
-    { node_t * n = create_node("type_VOID", NULL); n->type = VOID_; (yyval.node) = n;}
+#line 358 "structfe.y"
+    { node_t * n = create_node("type_VOID", NULL); n->type = VOID_; (yyval.node) = n; }
     break;
 
   case 43:
-#line 401 "structfe.y"
-    { node_t * n = create_node("type_INT", NULL); n->type = INT_; (yyval.node) = n;}
+#line 359 "structfe.y"
+    { node_t * n = create_node("type_INT", NULL); n->type = INT_; (yyval.node) = n; }
     break;
 
   case 44:
-#line 402 "structfe.y"
-    {node_t * n = create_node("type_STRUCT", mergeNodes(1, (yyvsp[(1) - (1)].node))); n->type = STRUCT_; n->ts_t = STRUCTURE_ ; (yyval.node) = n;}
+#line 360 "structfe.y"
+    { node_t * n = create_node("type_STRUCT", mergeNodes(1, (yyvsp[(1) - (1)].node))); n->type = STRUCT_; n->ts_t = STRUCTURE_ ; (yyval.node) = n; }
     break;
 
   case 45:
-#line 406 "structfe.y"
-    {
-                //printf("lettre m2\n");
-                node_t * n = create_node(strdup((yyvsp[(2) - (5)].nom)), NULL);
-                symbole_t * s = malloc(sizeof(symbole_t));
-                s->field_list = field_list_stack;
-                clean_field_list_stack();
-                n->symb = s;
-                (yyval.node) = n;
-        }
+#line 364 "structfe.y"
+    { 
+                                                                        node_t * n = create_node(strdup((yyvsp[(2) - (5)].nom)), NULL);
+                                                                        symbole_t * s = malloc(sizeof(symbole_t));
+                                                                        s->field_list = field_list_stack;
+                                                                        clean_field_list_stack();
+                                                                        n->symb = s;
+                                                                        (yyval.node) = n;
+                                                                }
     break;
 
   case 46:
-#line 415 "structfe.y"
-    { printf("%sLigne %d, les structures anonymes ne sont pas autorisées.\n",ERROR, yylineno); exit(1);}
+#line 372 "structfe.y"
+    { printf("%sLigne %d, les structures anonymes ne sont pas autorisées.\n",ERROR, yylineno); exit(1); }
     break;
 
   case 47:
-#line 416 "structfe.y"
-    {
-                //printf("lettre m2\n");
-                (yyval.node) = create_node(strdup((yyvsp[(2) - (2)].nom)), NULL);
-        }
+#line 373 "structfe.y"
+    { (yyval.node) = create_node(strdup((yyvsp[(2) - (2)].nom)), NULL); }
     break;
 
   case 48:
-#line 423 "structfe.y"
-    {addField(&field_list_stack, (yyvsp[(1) - (1)].symb)); (yyval.symb) = NULL;}
+#line 377 "structfe.y"
+    { addField(&field_list_stack, (yyvsp[(1) - (1)].symb)); (yyval.symb) = NULL; }
     break;
 
   case 49:
-#line 424 "structfe.y"
-    { addField(&field_list_stack, (yyvsp[(2) - (2)].symb)); (yyval.symb) = NULL;}
+#line 378 "structfe.y"
+    { addField(&field_list_stack, (yyvsp[(2) - (2)].symb)); (yyval.symb) = NULL; }
     break;
 
   case 50:
-#line 428 "structfe.y"
+#line 382 "structfe.y"
     {
-                //printf("lettre t2\n");
-                char * nom = (yyvsp[(2) - (3)].node)->name; // Je sauvegarde les informations
-                symbole_t * s;
-                s = malloc(sizeof(symbole_t));
-                s->type = (yyvsp[(1) - (3)].node)->type;
-                if(nom[0] == '*'){
-                        s->isPtr = true;
-                        nom++; // on retire le premier caractere
-                } else {
-                        s->isPtr = false;
-                }
-                s->nom = nom;
-                (yyval.symb) = s;
-        }
+                                                        char * nom = (yyvsp[(2) - (3)].node)->name; // Je sauvegarde les informations
+                                                        symbole_t * s;
+                                                        s = malloc(sizeof(symbole_t));
+                                                        s->type = (yyvsp[(1) - (3)].node)->type;
+                                                        if(nom[0] == '*'){
+                                                                s->isPtr = true;
+                                                                nom++; // on retire le premier caractere
+                                                        } else {
+                                                                s->isPtr = false;
+                                                        }
+                                                        s->nom = nom;
+                                                        (yyval.symb) = s;
+                                                }
     break;
 
   case 51:
-#line 446 "structfe.y"
-    { 
-                //printf("lettre o\n");
-                char p[strlen((yyvsp[(2) - (2)].node)->name)+2]; 
-                sprintf(p, "*%s", (yyvsp[(2) - (2)].node)->name);
-                (yyvsp[(2) - (2)].node)->name = strdup(p);
-                (yyval.node) = (yyvsp[(2) - (2)].node);
-        }
+#line 399 "structfe.y"
+    {
+                                                char p[strlen((yyvsp[(2) - (2)].node)->name)+2]; 
+                                                sprintf(p, "*%s", (yyvsp[(2) - (2)].node)->name);
+                                                (yyvsp[(2) - (2)].node)->name = strdup(p);
+                                                (yyval.node) = (yyvsp[(2) - (2)].node);
+                                        }
     break;
 
   case 52:
-#line 453 "structfe.y"
+#line 405 "structfe.y"
     { (yyval.node) = (yyvsp[(1) - (1)].node); }
     break;
 
   case 53:
-#line 457 "structfe.y"
-    {node_t * n = create_node(strdup((yyvsp[(1) - (1)].nom)), NULL); n->ts_t = VARIABLE_; (yyval.node) = n;}
+#line 409 "structfe.y"
+    { node_t * n = create_node(strdup((yyvsp[(1) - (1)].nom)), NULL); n->ts_t = VARIABLE_; (yyval.node) = n; }
     break;
 
   case 54:
-#line 458 "structfe.y"
+#line 410 "structfe.y"
     { (yyval.node) = (yyvsp[(2) - (3)].node); }
     break;
 
   case 55:
-#line 459 "structfe.y"
-    {node_t * n = (yyvsp[(1) - (4)].node); n->ts_t = FONCTION_; (yyval.node) = n;}
+#line 411 "structfe.y"
+    { node_t * n = (yyvsp[(1) - (4)].node); n->ts_t = FONCTION_; (yyval.node) = n; }
     break;
 
   case 56:
-#line 460 "structfe.y"
-    {node_t * n = (yyvsp[(1) - (3)].node); n->ts_t = FONCTION_; (yyval.node) = n;}
+#line 412 "structfe.y"
+    { node_t * n = (yyvsp[(1) - (3)].node); n->ts_t = FONCTION_; (yyval.node) = n; }
     break;
 
   case 57:
-#line 464 "structfe.y"
-    {
-                //printf("lettre r\n");
-                addParam(&param_list_stack, (yyvsp[(1) - (1)].symb));
-        }
+#line 416 "structfe.y"
+    { addParam(&param_list_stack, (yyvsp[(1) - (1)].symb)); }
     break;
 
   case 58:
-#line 468 "structfe.y"
-    {
-                //printf("lettre s\n");
-                addParam(&param_list_stack, (yyvsp[(3) - (3)].symb));
-        }
+#line 417 "structfe.y"
+    { addParam(&param_list_stack, (yyvsp[(3) - (3)].symb)); }
     break;
 
   case 59:
-#line 475 "structfe.y"
+#line 421 "structfe.y"
     {
-                //printf("lettre t\n");
                 char * nom = strdup((yyvsp[(2) - (2)].node)->name); // Je sauvegarde les informations
                 symbole_t * s;
                 s = malloc(sizeof(symbole_t));
@@ -2139,60 +2084,61 @@ yyreduce:
     break;
 
   case 60:
-#line 493 "structfe.y"
+#line 438 "structfe.y"
     {(yyval.node_list) = (yyvsp[(1) - (1)].node_list);}
     break;
 
   case 61:
-#line 494 "structfe.y"
+#line 439 "structfe.y"
     {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node));}
     break;
 
   case 62:
-#line 495 "structfe.y"
+#line 440 "structfe.y"
     {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node));}
     break;
 
   case 63:
-#line 496 "structfe.y"
+#line 441 "structfe.y"
     {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node));}
     break;
 
   case 64:
-#line 497 "structfe.y"
+#line 442 "structfe.y"
     {(yyval.node_list) = mergeNodes(1, (yyvsp[(1) - (1)].node));}
     break;
 
   case 65:
-#line 501 "structfe.y"
+#line 446 "structfe.y"
     {(yyval.node_list) = NULL;}
     break;
 
   case 66:
-#line 502 "structfe.y"
+#line 447 "structfe.y"
     {(yyval.node_list) = (yyvsp[(2) - (3)].node_list);}
     break;
 
   case 67:
-#line 503 "structfe.y"
+#line 448 "structfe.y"
     {(yyval.node_list) = NULL;}
     break;
 
   case 68:
-#line 504 "structfe.y"
+#line 449 "structfe.y"
     {(yyval.node_list) = (yyvsp[(3) - (4)].node_list);}
     break;
 
   case 69:
-#line 507 "structfe.y"
+#line 452 "structfe.y"
     { table_t *table = nouvelle_table(); push(table);}
     break;
 
   case 70:
-#line 508 "structfe.y"
+#line 453 "structfe.y"
     {   /* NE PAS TOUCHER */
+
                 marker = "prog";
-                //printf("lettre w\n");
+                
                 /*table_t *table = pop(); 
                 detruire_table(&table);
                 if((*top()) != NULL){ // autrement dit si la pile est vide    
@@ -2200,300 +2146,280 @@ yyreduce:
                 } else {
                     printf("[]\n");
                 }*/
+
                 /* ************* */
             }
     break;
 
   case 71:
-#line 522 "structfe.y"
+#line 469 "structfe.y"
     { (yyval.node_list) = NULL; }
     break;
 
   case 72:
-#line 523 "structfe.y"
+#line 470 "structfe.y"
     { (yyval.node_list) = NULL; }
     break;
 
   case 73:
-#line 527 "structfe.y"
+#line 474 "structfe.y"
     {(yyval.node_list) = (yyvsp[(1) - (1)].node_list);}
     break;
 
   case 74:
-#line 528 "structfe.y"
+#line 475 "structfe.y"
     {(yyval.node_list) = concatNodes((yyvsp[(1) - (2)].node_list), (yyvsp[(2) - (2)].node_list)); }
     break;
 
   case 75:
-#line 532 "structfe.y"
+#line 479 "structfe.y"
     { (yyval.node) = NULL; }
     break;
 
   case 76:
-#line 533 "structfe.y"
+#line 480 "structfe.y"
     {(yyval.node) = (yyvsp[(1) - (2)].node);}
     break;
 
   case 77:
-#line 537 "structfe.y"
+#line 484 "structfe.y"
     {(yyval.node) = create_node("IF", concatNodes(mergeNodes(1, (yyvsp[(3) - (5)].node)), (yyvsp[(5) - (5)].node_list)));}
     break;
 
   case 78:
-#line 538 "structfe.y"
+#line 485 "structfe.y"
     {(yyval.node) = create_node("IF-ELSE", concatNodes(mergeNodes(1, (yyvsp[(3) - (7)].node)), concatNodes((yyvsp[(5) - (7)].node_list), (yyvsp[(7) - (7)].node_list))));}
     break;
 
   case 79:
-#line 542 "structfe.y"
+#line 489 "structfe.y"
     {(yyval.node) = create_node("WHILE", concatNodes(mergeNodes(1, (yyvsp[(3) - (5)].node)), (yyvsp[(5) - (5)].node_list))); }
     break;
 
   case 80:
-#line 543 "structfe.y"
+#line 490 "structfe.y"
     { (yyval.node) = create_node("FOR", concatNodes( mergeNodes(3, (yyvsp[(3) - (7)].node), (yyvsp[(4) - (7)].node), (yyvsp[(5) - (7)].node)), (yyvsp[(7) - (7)].node_list))); }
     break;
 
   case 81:
-#line 547 "structfe.y"
+#line 494 "structfe.y"
     { (yyval.node) = create_node("RETURN", NULL);}
     break;
 
   case 82:
-#line 548 "structfe.y"
-    {(yyval.node) = create_node("RETURN", mergeNodes(1, (yyvsp[(2) - (3)].node))); /*$$ = create_node("jump_statement", mergeNodes(3,create_node("return", NULL), $2, create_node(";", NULL)));*/}
+#line 495 "structfe.y"
+    {(yyval.node) = create_node("RETURN", mergeNodes(1, (yyvsp[(2) - (3)].node))); }
     break;
 
   case 83:
-#line 551 "structfe.y"
-    {        
-                                printf("AFFICHAGE FINAL\n");
+#line 498 "structfe.y"
+    {       //Obliger de séparer le start du program car on affiche chaque AST des fonctions, donc on ne veux pas un arret prématuré
+                                printf("FIN ANALYSE!\n");
                                 print_tree(mergeNodes(1,(yyval.node)), "");
-                                //Obliger de séparer le start du program car on affiche chaque AST des fonctions, donc on ne veux pas un arret prématuré
                                 
-                                print_complete_table();
-                                table_t *table = pop(); 
-                                detruire_table(&table);
-
-                                /*if((*top()) != NULL){ // autrement dit, si la pile est vide    
-                                        print_table();
-                                } else {
-                                        printf("[]\n");
-                                }*/
+                                /* Il faudrait normalement vider la table */
+                                // ...
                         }
     break;
 
   case 84:
-#line 569 "structfe.y"
+#line 508 "structfe.y"
     {
-                printf("AFFICHAGE PREM1\n");
-                print_complete_table();
-                nodes_list_t * arbre = NULL;
-                if((yyvsp[(1) - (1)].node) != NULL){
-                        arbre = mergeNodes(1, (yyvsp[(1) - (1)].node));
-                        print_tree(arbre, "");
-                        printf("TYPECHECK ==> DEBUT\n");
-                        // Il faut verifier chacune de ses branches
-                        nodes_list_t * current = arbre->first->children;
-                        int i = 0;
-                        while(current->next != NULL){ // je ne gere pas le return pour le moment
-                                printf("i = %d\n", i);
-                                type_check(current);
-                                current = current->next;
-                                i++;
-                        }
-                        i++;
-                        printf("i = %d\n", i);
-                        switch(arbre->first->symb->type){
-                                case INT_ :{
-                                        if(strcmp(type_check(current), "int") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "int *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "int") != 0 && strcmp(type_check(current), "int *") != 0)){
-                                                printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
-                                                exit(1);
-                                        }
-                                        break;
-                                }
+                                        print_complete_table();
+                                        nodes_list_t * arbre = NULL;
+                                        if((yyvsp[(1) - (1)].node) != NULL){
+                                                arbre = mergeNodes(1, (yyvsp[(1) - (1)].node));
+                                                print_tree(arbre, "");
+                                                // Il faut verifier chacune de ses branches
+                                                nodes_list_t * current = arbre->first->children;
+                                                int i = 0;
+                                                while(current->next != NULL){ // je ne gere pas le return pour le moment
+                                                        type_check(current);
+                                                        current = current->next;
+                                                        i++;
+                                                }
+                                                i++;
+                                                switch(arbre->first->symb->type){
+                                                        case INT_ :{
+                                                                if(strcmp(type_check(current), "int") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "int *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "int") != 0 && strcmp(type_check(current), "int *") != 0)){
+                                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
+                                                                        exit(1);
+                                                                }
+                                                                break;
+                                                        }
 
-                                case VOID_ : {
-                                        if(strcmp(type_check(current), "void") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "void *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "void") != 0 && strcmp(type_check(current), "void *") != 0)){
-                                                 printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
-                                                exit(1);
-                                        }
-                                        break;
-                                }
+                                                        case VOID_ : {
+                                                                if(strcmp(type_check(current), "void") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "void *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "void") != 0 && strcmp(type_check(current), "void *") != 0)){
+                                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
+                                                                        exit(1);
+                                                                }
+                                                                break;
+                                                        }
 
-                                default : { // STRUCT_
-                                        if(strcmp(type_check(current), "struct") != 0){
-                                                 printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
-                                                exit(1);
+                                                        default : { // STRUCT_
+                                                                if(strcmp(type_check(current), "struct") != 0){
+                                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
+                                                                        exit(1);
+                                                                }
+                                                                break;
+                                                        }             
+                                                }
+                                                printf("%s\n", generation(arbre->first)->code);
+                                                printf("TYPECHECK ==> OK\n");
                                         }
-                                        break;
-                                }             
-                        }
-                        printf("TYPECHECK ==> OK\n");
-                        printf("%s", genereration(arbre->first));
-                }
-                (yyval.node) = create_node("prog", mergeNodes(1, (yyvsp[(1) - (1)].node)));
-        }
+                                        (yyval.node) = create_node("prog", mergeNodes(1, (yyvsp[(1) - (1)].node)));
+                                }
     break;
 
   case 85:
-#line 618 "structfe.y"
+#line 553 "structfe.y"
     {
-                printf("AFFICHAGE PREM2\n");
-                print_complete_table();
-                nodes_list_t * arbre = NULL;
-                if((yyvsp[(2) - (2)].node) != NULL){
-                        arbre = mergeNodes(1, (yyvsp[(2) - (2)].node));
-                        print_tree(arbre, "");
-                        printf("TYPECHECK ==> DEBUT\n");
-                        nodes_list_t * current = arbre->first->children;
-                        int i = 0;
-                        while(current->next != NULL){ // je ne gere pas le return pour le moment
-                                printf("i = %d\n", i);
-                                type_check(current);
-                                current = current->next;
-                                i++;
-                        }
-                        i++;
-                        printf("i = %d\n", i);
+                                                print_complete_table();
+                                                nodes_list_t * arbre = NULL;
+                                                if((yyvsp[(2) - (2)].node) != NULL){
+                                                        arbre = mergeNodes(1, (yyvsp[(2) - (2)].node));
+                                                        print_tree(arbre, "");
+                                                        nodes_list_t * current = arbre->first->children;
+                                                        int i = 0;
+                                                        while(current->next != NULL){ // je ne gere pas le return pour le moment
+                                                                type_check(current);
+                                                                current = current->next;
+                                                                i++;
+                                                        }
+                                                        i++;
 
-                        if(strcmp(current->first->name, "RETURN") != 0 && arbre->first->symb->type != VOID_){
-                                printf("%sIl n'y a pas de fonction de retour alors que la fonction n'est pas de type void.\n", ERROR);
-                                exit(1);
-                        } else if (strcmp(current->first->name, "RETURN") != 0 && arbre->first->symb->type == VOID_ && arbre->first->symb->isPtr == false){
-                                /* il n'y a rien a faire */
-                        } else {
-                                switch(arbre->first->symb->type){
-                                        case INT_ :{
-                                                if(strcmp(type_check(current), "int") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "int *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "int") != 0 && strcmp(type_check(current), "int *") != 0)){
-                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
-                                                        exit(1);
+                                                        if(strcmp(current->first->name, "RETURN") != 0 && arbre->first->symb->type != VOID_){
+                                                                printf("%sIl n'y a pas de fonction de retour alors que la fonction n'est pas de type void.\n", ERROR);
+                                                                exit(1);
+                                                        } else if (strcmp(current->first->name, "RETURN") != 0 && arbre->first->symb->type == VOID_ && arbre->first->symb->isPtr == false){
+                                                                /* il n'y a rien a faire */
+                                                        } else {
+                                                                switch(arbre->first->symb->type){
+                                                                        case INT_ :{
+                                                                                if(strcmp(type_check(current), "int") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "int *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "int") != 0 && strcmp(type_check(current), "int *") != 0)){
+                                                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
+                                                                                        exit(1);
+                                                                                }
+                                                                                break;
+                                                                        }
+
+                                                                        case VOID_ : {
+                                                                                if(strcmp(type_check(current), "void") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "void *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "void") != 0 && strcmp(type_check(current), "void *") != 0)){
+                                                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
+                                                                                        exit(1);
+                                                                                }
+                                                                                break;
+                                                                        }
+
+                                                                        default : { // STRUCT_
+                                                                                if(strcmp(type_check(current), "struct") != 0){
+                                                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
+                                                                                        exit(1);
+                                                                                }
+                                                                                break;
+                                                                        }             
+                                                                }
+                                                        }
+                                                        printf("TYPECHECK ==> OK\n");    
                                                 }
-                                                break;
+                                                (yyval.node) = create_node("prog", mergeNodes(1, (yyvsp[(2) - (2)].node)));
                                         }
-
-                                        case VOID_ : {
-                                                if(strcmp(type_check(current), "void") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "void *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "void") != 0 && strcmp(type_check(current), "void *") != 0)){
-                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
-                                                        exit(1);
-                                                }
-                                                break;
-                                        }
-
-                                        default : { // STRUCT_
-                                                if(strcmp(type_check(current), "struct") != 0){
-                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
-                                                        exit(1);
-                                                }
-                                                break;
-                                        }             
-                                }
-                        }
-                        printf("TYPECHECK ==> OK\n");    
-                }
-                (yyval.node) = create_node("prog", mergeNodes(1, (yyvsp[(2) - (2)].node)));
-        }
     break;
 
   case 86:
-#line 676 "structfe.y"
+#line 607 "structfe.y"
     { (yyval.node) = (yyvsp[(1) - (1)].node);}
     break;
 
   case 87:
-#line 677 "structfe.y"
+#line 608 "structfe.y"
     { (yyval.node) = NULL;}
     break;
 
   case 88:
-#line 681 "structfe.y"
-    {
-                //printf("lettre omega\n");
-                /* Nouvelle regle syntaxique */
-                // Il fallait pouvoir agir sur la declaration des fonctions indépendamment des paramètres de celle-ci
-                marker = strdup((yyvsp[(2) - (2)].node)->name);
-                symbole_t *s = NULL;
-                table_t * stack_head = pile;
-                if(stack_head == NULL){
-                        table_t *table = nouvelle_table(); push(table); // Si la pile est vide on l'initialise
-                }
+#line 612 "structfe.y"
+    { /* Nouvelle regle syntaxique */
+                                                        // Il fallait pouvoir agir sur la declaration des fonctions indépendamment des paramètres de celle-ci
+                                                        marker = strdup((yyvsp[(2) - (2)].node)->name);
+                                                        symbole_t *s = NULL;
+                                                        table_t * stack_head = pile;
 
-                while(stack_head != NULL){
-                        if(stack_head->symbole != NULL){
-                                s = rechercher(stack_head->symbole, (yyvsp[(2) - (2)].node)->name);
-                                if(s != NULL)
-                                        break;
-                        }
-                        stack_head = stack_head->preced;
-                }
-                if(s != NULL && s->is_function_def == true && paramLength(s->param_list) == paramLength(param_list_stack)){
-                        printf("%sLigne %d, la fonction '%s' est déjà déclarée.\n", ERROR, yylineno, (yyvsp[(2) - (2)].node)->name);
-                        exit(1);
-                } else {
-                        int n = 0;
-                        symbole_t * sy = NULL;
-                        while(sy == NULL){ // Tant qu'il y a des occurences de la fonction, on regarde ses surcharges
-                                sy = rechercher_global(stack_head, (yyvsp[(2) - (2)].node)->name, n, "");
-                                if(sy == NULL){
-                                        if (s != NULL && s->is_function_def != true){
-                                                s->param_list = copyParamList(param_list_stack);
-                                                s->ts = FONCTION_;
-                                                //printf("ici !\n");
-                                                s->is_function_def = true;
-                                                clean_param_list_stack();
-                                                (yyval.symb) = s;
-                                                break;
-                                        } else {
-                                                table_t * t = *top();
-                                                sy = ajouter(&(t->symbole), (yyvsp[(2) - (2)].node)->name);
-                                                sy->type = (yyvsp[(1) - (2)].node)->type;
-                                                sy->ts = FONCTION_;
-                                                sy->taille = sizeof((yyvsp[(1) - (2)].node)->type);
-                                                sy->position = pos;
-                                                sy->suivant = NULL;
-                                                pos += sy->taille;
-                                                if(((yyvsp[(2) - (2)].node)->name)[0] == '*')
-                                                        (yyvsp[(2) - (2)].node)->name++;
-                                                sy->is_function_def = true; 
-                                                sy->param_list = copyParamList(param_list_stack);
-                                                clean_param_list_stack();
-                                                (yyval.symb) = sy;
-                                                break; 
-                                        }
-                                }
-                                        
-                                if(sy != NULL && sy->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength(sy->param_list)) && sy->is_function_def){
-                                        printf("%sLigne %d, La fonction '%s' est déjà définie.\n", ERROR, yylineno, (yyvsp[(2) - (2)].node)->name);
-                                        exit(1);
-                                } else if (sy != NULL && sy->ts == FONCTION_ && sy->is_function_def ) {
-                                        //printf("%d - %d\n", paramLength(param_list_stack), paramLength(sy->param_list));
-                                        //printf("ct une occur mais pas les memes params\n");
-                                        sy = NULL;
-                                } else {
-                                        sy = NULL;
-                                }
-                        
-                                n++;
-                        }
-                }
-        }
+                                                        if(stack_head == NULL){
+                                                                table_t *table = nouvelle_table(); push(table); // Si la pile est vide on l'initialise
+                                                        }
+
+                                                        while(stack_head != NULL){
+                                                                if(stack_head->symbole != NULL){
+                                                                        s = rechercher(stack_head->symbole, (yyvsp[(2) - (2)].node)->name);
+                                                                        if(s != NULL)
+                                                                                break;
+                                                                }
+                                                                stack_head = stack_head->preced;
+                                                        }
+                                                        if(s != NULL && s->is_function_def == true && paramLength(s->param_list) == paramLength(param_list_stack)){
+                                                                printf("%sLigne %d, la fonction '%s' est déjà déclarée.\n", ERROR, yylineno, (yyvsp[(2) - (2)].node)->name);
+                                                                exit(1);
+                                                        } else {
+                                                                int n = 0;
+                                                                symbole_t * sy = NULL;
+
+                                                                while(sy == NULL){ // Tant qu'il y a des occurences de la fonction, on regarde ses surcharges
+                                                                        sy = rechercher_global(stack_head, (yyvsp[(2) - (2)].node)->name, n, "");
+                                                                        if(sy == NULL){
+                                                                                if (s != NULL && s->is_function_def != true){
+                                                                                        s->param_list = copyParamList(param_list_stack);
+                                                                                        s->ts = FONCTION_;
+                                                                                        s->is_function_def = true;
+                                                                                        clean_param_list_stack();
+                                                                                        (yyval.symb) = s;
+                                                                                        break;
+                                                                                } else {
+                                                                                        table_t * t = *top();
+                                                                                        sy = ajouter(&(t->symbole), (yyvsp[(2) - (2)].node)->name);
+                                                                                        sy->type = (yyvsp[(1) - (2)].node)->type;
+                                                                                        sy->ts = FONCTION_;
+                                                                                        sy->taille = sizeof((yyvsp[(1) - (2)].node)->type);
+                                                                                        sy->position = pos;
+                                                                                        sy->suivant = NULL;
+                                                                                        pos += sy->taille;
+                                                                                        if(((yyvsp[(2) - (2)].node)->name)[0] == '*')
+                                                                                                (yyvsp[(2) - (2)].node)->name++;
+                                                                                        sy->is_function_def = true; 
+                                                                                        sy->param_list = copyParamList(param_list_stack);
+                                                                                        clean_param_list_stack();
+                                                                                        (yyval.symb) = sy;
+                                                                                        break; 
+                                                                                }
+                                                                        }
+                                                                                
+                                                                        if(sy != NULL && sy->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength(sy->param_list)) && sy->is_function_def){
+                                                                                printf("%sLigne %d, La fonction '%s' est déjà définie.\n", ERROR, yylineno, (yyvsp[(2) - (2)].node)->name);
+                                                                                exit(1);
+                                                                        } else if (sy != NULL && sy->ts == FONCTION_ && sy->is_function_def ) {
+                                                                                sy = NULL;
+                                                                        } else {
+                                                                                sy = NULL;
+                                                                        }
+                                                                        
+                                                                        n++;
+                                                                }
+                                                        }
+                                                }
     break;
 
   case 89:
-#line 753 "structfe.y"
-    {   
-                                                //print_tree($2, "");
-                                                //print_complete_table();
-                                                clean_param_list_stack(); // On nettoie la pile des paramètres par précaution
-                                                node_t * n  = create_node(getSymbole((yyvsp[(1) - (2)].symb),-1)->nom,(yyvsp[(2) - (2)].node_list));
-                                                n->symb = (yyvsp[(1) - (2)].symb);
-                                                (yyval.node) = n;
-                                        }
+#line 681 "structfe.y"
+    {
+                                                        clean_param_list_stack(); // On nettoie la pile des paramètres par précaution
+                                                        node_t * n  = create_node(getSymbole((yyvsp[(1) - (2)].symb),-1)->nom,(yyvsp[(2) - (2)].node_list));
+                                                        n->symb = (yyvsp[(1) - (2)].symb);
+                                                        (yyval.node) = n;
+                                                }
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 2497 "y.tab.c"
+#line 2423 "y.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2707,7 +2633,7 @@ yyreturn:
 }
 
 
-#line 762 "structfe.y"
+#line 688 "structfe.y"
 
         int yyerror(char *s){ // fonction pour détecter une erreur
                 fprintf(stderr, "%s\n", s);
@@ -2717,7 +2643,7 @@ yyreturn:
         int pos = 0;
         table_t * pile = NULL;
 
-        table_t ** top() {
+        table_t ** top(){
                 return &pile;
         }
 
@@ -2753,33 +2679,27 @@ yyreturn:
         symbole_t * rechercher_global(table_t * t, char * nom, int n, char * mark){
                 if(t != NULL){
                         table_t * table = t;
-                        //printf("==========\n");
                         while(table != NULL){
                                 symbole_t * s = NULL;
                                 symbole_t * depthS = NULL;
                                 depthS = table->symbole;
                                 while(1){
                                         s = rechercher(depthS, nom);
-                                        if(s != NULL){
-                                                //printf("POUR %s, s VAUT 1 ('%s') et mark: %s avec pour mark %s\n", nom, s->nom, s->marker, mark);
-                                                //printf("res %d\n",n);
-                                        }
-
-                                        if(s == NULL){
-                                                //printf("POUR %s, s VAUT NULL et mark: NULL\n", nom);
+                                        
+                                        if(s == NULL)
                                                 break;
-                                        }
+                                        
 
-                                        if(s != NULL && (s->marker != NULL && strcmp(s->marker, mark) == 0 || strcmp("", mark) == 0) && n == 0){ // "" pour faire une recherche classique
+                                        if(s != NULL && (s->marker != NULL && strcmp(s->marker, mark) == 0 || strcmp("", mark) == 0) && n == 0) // "" pour faire une recherche classique
                                                 return s;
-                                        }
+                                        
                                         if(s != NULL && (s->marker != NULL && strcmp(s->marker, mark) == 0 || strcmp("", mark) == 0))
                                                 n--;
+
                                         depthS = depthS->suivant;
                                 }
                                 table = table->preced;
                         }
-                        //printf("=====f=====\n");
                 }
                 return NULL;
         }
@@ -2941,16 +2861,10 @@ yyreturn:
 
         void print_tree(nodes_list_t * n, char * space){
                 printf("%s\n", n->first->name);
-                //current = n->children;
                 nodes_list_t * current = n->first->children;
                 char * newspace = "     ";
-                //char ntarget[strlen(space) + strlen(newspace) + 1];
                 while(current != NULL){ // Tant que le pere a des enfants
-                    //strcpy(ntarget, space);
-                    
                     printf("%s     |___> ", space);
-                    //strcat(ntarget, newspace);
-                    
                     printf("%s \n", current->first->name);
                     
                     nodes_list_t * depth_current = current->first->children;
@@ -2999,14 +2913,12 @@ yyreturn:
                         }
                         st->suivant = p;
                 }
-        }
-
-        
+        }   
 
         param_list_t * copyParamList(param_list_t * stack){
-                if(stack == NULL){
+                if(stack == NULL)
                         return NULL;
-                }
+                
                 param_list_t * p = malloc(sizeof(param_list_t));
                 p->symbole = malloc(sizeof(symbole_t));
                 p->symbole->type = stack->symbole->type;
@@ -3019,7 +2931,6 @@ yyreturn:
         symbole_t * rechercherStack(param_list_t * st, char * nom){
                 param_list_t * p = st;
                 while(p != NULL){
-                        //printf("%s et %s \n",nom, p->symbole->nom);
                         if(strcmp(nom, p->symbole->nom) == 0)
                                 return p->symbole;
                         p = p->suivant;
@@ -3037,17 +2948,11 @@ yyreturn:
 
         void clean_param_list_stack(){
                 param_list_t ** stack = &param_list_stack;
-                //param_list_t * current = *stack;
-                while (*stack != NULL)
-                {       
-                        //current = NULL;
+                while (*stack != NULL){
                         *stack = (*stack)->suivant;
                 }
-                /*printf("=========%d-3========\n", yylineno);
-                
-                displayParam(param_list_stack);
-                printf("=================\n");*/
         }
+
         int paramLength(param_list_t * p){
                 param_list_t * current;
                 int count;
@@ -3133,11 +3038,10 @@ yyreturn:
                 }
         }
 
-
         field_list_t * copyFieldList(field_list_t * stack){
-                if(stack == NULL){
+                if(stack == NULL)
                         return NULL;
-                }
+
                 field_list_t * p = malloc(sizeof(field_list_t));
                 p->symbole = malloc(sizeof(symbole_t));
                 p->symbole->type = stack->symbole->type;
@@ -3167,17 +3071,11 @@ yyreturn:
 
         void clean_field_list_stack(){
                 field_list_t ** stack = &field_list_stack;
-                //param_list_t * current = *stack;
-                while (*stack != NULL)
-                {       
-                        //current = NULL;
+                while (*stack != NULL){
                         *stack = (*stack)->suivant;
                 }
-                /*printf("=========%d-3========\n", yylineno);
-                
-                displayParam(param_list_stack);
-                printf("=================\n");*/
         }
+
         int fieldLength(field_list_t * p){
                 field_list_t * current;
                 int count;
@@ -3194,7 +3092,6 @@ yyreturn:
                 param_list_t * current = pls;
                 table_t * stack_head = pile;
                 while(current != NULL){
-                        printf("la j'affiche symbole nom : %s\n", current->symbole->nom);
                         if(rechercher_global(stack_head, current->symbole->nom,0,marker) == NULL && rechercher_global(stack_head, current->symbole->nom,0,"prog") == NULL){ // Si un parametre nn'existe pas alors il y  a un probleme
                                 return 0;
                         }
@@ -3204,24 +3101,9 @@ yyreturn:
         }
 
         char * type_check(nodes_list_t * a){
-                /*printf("la\n");
-                if(a->first != NULL){
-                        if (a->first->name != NULL){
-                                printf("tout est bon\n");
-                        } else {
-                                printf("nom pb\n");
-                                exit(1);
-                        }
-                } else {
-                        printf("first pb \n");
-                        exit(1);
-                }*/
-                //printf("je suis avec %s\n", a->first->name);
                 if(strcmp(a->first->name, "=") == 0){
                         char * fg = type_check(a->first->children);
-                        //printf("fg vaut %s\n", fg);
                         char * fd = type_check(a->first->children->next);
-                        //printf("fd vaut %s\n", fd);
                         if(strcmp(fg, fd) == 0)
                                 return fg; 
                         printf("%sTYPECHECK: '=' attendait un type %s mais a reçu un type %s OU il s'agit d'un probleme de pointeurs.\n", ERROR, fg, fd);
@@ -3256,81 +3138,81 @@ yyreturn:
                 } else if (strcmp(a->first->name, "*") == 0){ // Il faut aussi vérifier s'il s'agit d'un pointeur
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0))
                                 return "int"; 
-                        }         
+                              
                         printf("%sTYPECHECK: '*' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
                         exit(1);
                 } else if (strcmp(a->first->name, "/") == 0){
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0))
                                 return "int"; 
-                        }         
+                              
                         printf("%sTYPECHECK: '/' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
                         exit(1);
                 } else if (strcmp(a->first->name, ">") == 0){
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0))
                                 return "int"; 
-                        }         
+                        
                         printf("%sTYPECHECK: '>' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
                         exit(1);
                 } else if (strcmp(a->first->name, "<") == 0){
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0))
                                 return "int"; 
-                        }         
+                
                         printf("%sTYPECHECK: '<' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
                         exit(1);
                 } else if (strcmp(a->first->name, ">=") == 0){
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0))
                                 return "int"; 
-                        }         
+                             
                         printf("%sTYPECHECK: '>=' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
                         exit(1);
                 } else if (strcmp(a->first->name, "<=") == 0){
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0))
                                 return "int"; 
-                        }         
+                                
                         printf("%sTYPECHECK: '<=' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
                         exit(1);
                 } else if (strcmp(a->first->name, "==") == 0){
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0))
                                 return "int"; 
-                        }         
+                         
                         printf("%sTYPECHECK: '==' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
                         exit(1);
                 } else if (strcmp(a->first->name, "!=") == 0){
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0))
                                 return "int"; 
-                        }         
+                               
                         printf("%sTYPECHECK: '!=' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
                         exit(1);
                 } else if (strcmp(a->first->name, "&&") == 0){
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0))
                                 return "int"; 
-                        }         
+                                
                         printf("%sTYPECHECK: '&&' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
                         exit(1);
                 } else if (strcmp(a->first->name, "||") == 0){
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0))
                                 return "int"; 
-                        }         
+                               
                         printf("%sTYPECHECK: '||' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
                         exit(1);
                 } else if (strcmp(a->first->name, "&") == 0){
@@ -3349,17 +3231,17 @@ yyreturn:
                 } else if (strcmp(a->first->name, "->") == 0){
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if(strcmp(fg, "struct") == 0 && a->first->children->first->symb->isPtr == true){
+                        if(strcmp(fg, "struct") == 0 && a->first->children->first->symb->isPtr == true)
                                 return fd; 
-                        }         
+                              
                         printf("%sTYPECHECK: '->' attendait un type struct mais a reçu un type %s (peut-etre pas un pointeur?) .\n", ERROR, fg);
                         exit(1);
                 } else if (strcmp(a->first->name, ".") == 0){
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if(strcmp(fg, "struct") == 0 && a->first->children->first->symb->isPtr == false){
+                        if(strcmp(fg, "struct") == 0 && a->first->children->first->symb->isPtr == false)
                                 return fd; 
-                        }         
+                                
                         printf("%sTYPECHECK: '.' attendait un type struct mais a reçu un type %s (peut-etre un pointeur?) .\n", ERROR, fg);
                         exit(1);
                 } else if (strcmp(a->first->name, "RETURN") == 0){
@@ -3371,7 +3253,7 @@ yyreturn:
                         }
                         
                 } else { // Si on entre ici, soit on a pas implémenté un opérateur, soit il faut faire remonter un type
-                        //JE RECHERCHE DANS LA TS L'ELEMENT COURANT ...
+                        //JE RECHERCHE DANS LA TS L'ELEMENT COURANT
                         
                         table_t * stack_head = pile;
                         symbole_t * s = NULL;
@@ -3381,11 +3263,6 @@ yyreturn:
                         }
                         
                         s = rechercher_global(stack_head, a->first->name, 0, "");
-
-                        /*if(s->ts == FONCTION_){
-                                printf("PAS IMPLEMENTEZ\n");
-                                exit(1);
-                        }*/
 
                         if (s != NULL) {
                                 type_t res;
@@ -3440,61 +3317,147 @@ yyreturn:
                 return res;
         }
 
-        char * genereration (node_t * a){
-                printf("ICI %s\n", a->name);
+        code_info * generation (node_t * a){
                 // Init
                 nodes_list_t * arbre = a->children; // Premier fils
                 int length_children = lengthChildren(a); // Nb de ses enfants
-                char * codes[length_children];
+                code_info * codes[length_children];
                 int i = 0;
 
                 // Je recupere dans un premier temps le code des enfants du noeud courant
                 while(arbre != NULL && length_children > 0){
-                        codes[i] = genereration(arbre->first);
+                        codes[i] = generation(arbre->first);
                         i++;
                         arbre = arbre->next;
                 }
 
                 // Je peux maintenant traiter le code du noeud en parametre
                 if(strcmp(a->name, "=") == 0){
-                        return concatener(4, codes[0], " = ", codes[1], ";\n");
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        if(infos->val == NULL){
+                                infos->code = strdup(concatener(4, codes[0]->code, "=", codes[1]->code, ";\n"));
+                        } else {
+                                char * tmp = codes[1]->code;
+                                infos->code = concatener(4, tmp, codes[0]->code, "=", codes[1]->val);
+                        }
+                        return infos;
                 } else if (strcmp(a->name, "+") == 0) {
-                        return concatener(5, "_t = ", codes[0], " + ", codes[1], ";\n");
-                } /*else if (strcmp(a->name, "-") == 0){ // Il faut aussi verifier s'il s'agit d'une opération unaire
-                        
+                         // ^ il faudra introduire le nombre de var temp créées
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        if(infos->val == NULL){
+                                infos->code = strdup(concatener(4, codes[0]->code, "+", codes[1]->code, ";\n"));
+                        }else{
+                                char * tmp = codes[1]->code;
+                                infos->code = concatener(4, tmp, codes[0]->code, "+", codes[1]->val);
+                        }
+                        infos->val = strdup("_t");
+                        return infos;
+                } else if (strcmp(a->name, "-") == 0){ // Il faut aussi verifier s'il s'agit d'une opération unaire
+                       code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        infos->code = strdup(concatener(5, "_t=", codes[0]->code, "-", codes[1]->code, ";\n"));
+                        infos->val = strdup("_t");
+                        return infos;
                 } else if (strcmp(a->name, "*") == 0){ // Il faut aussi vérifier s'il s'agit d'un pointeur
-                        
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        infos->code = strdup(concatener(5, "_t=", codes[0]->code, "*", codes[1]->code, ";\n"));
+                        infos->val = strdup("_t");
+                        return infos;
                 } else if (strcmp(a->name, "/") == 0){
-                        
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        infos->code = strdup(concatener(5, "_t=", codes[0]->code, "/", codes[1]->code, ";\n"));
+                        infos->val = strdup("_t");
+                        return infos;
                 } else if (strcmp(a->name, ">") == 0){
-                        
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        infos->code = strdup(concatener(5, "_t=", codes[0]->code, ">", codes[1]->code, ";\n"));
+                        infos->val = strdup("_t");
+                        return infos;
                 } else if (strcmp(a->name, "<") == 0){
-                        
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        infos->code = strdup(concatener(5, "_t=", codes[0]->code, "<", codes[1]->code, ";\n"));
+                        infos->val = strdup("_t");
+                        return infos;
                 } else if (strcmp(a->name, ">=") == 0){
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        infos->code = strdup(concatener(5, "_t=", codes[0]->code, ">=", codes[1]->code, ";\n"));
+                        infos->val = strdup("_t");
+                        return infos;
                         
                 } else if (strcmp(a->name, "<=") == 0){
-                        
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        infos->code = strdup(concatener(5, "_t=", codes[0]->code, "<=", codes[1]->code, ";\n"));
+                        infos->val = strdup("_t");
+                        return infos;
                 } else if (strcmp(a->name, "==") == 0){
-                        
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        infos->code = strdup(concatener(5, "_t=", codes[0]->code, "==", codes[1]->code, ";\n"));
+                        infos->val = strdup("_t");
+                        return infos;
                 } else if (strcmp(a->name, "!=") == 0){
-                        
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        infos->code = strdup(concatener(5, "_t=", codes[0]->code, "!=", codes[1]->code, ";\n"));
+                        infos->val = strdup("_t");
+                        return infos;
                 } else if (strcmp(a->name, "&&") == 0){
-                        
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        infos->code = strdup(concatener(5, "_t=", codes[0]->code, "&&", codes[1]->code, ";\n"));
+                        infos->val = strdup("_t");
+                        return infos;
                 } else if (strcmp(a->name, "||") == 0){
-                        
-                } else if (strcmp(a->name, "&") == 0){
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        infos->code = strdup(concatener(5, "_t=", codes[0]->code, "||", codes[1]->code, ";\n"));
+                        infos->val = strdup("_t");
+                        return infos;
+                } /* else if (strcmp(a->name, "&") == 0){
                         
                 } else if (strcmp(a->name, "->") == 0){
                         
                 } else if (strcmp(a->name, ".") == 0){
 
                 }*/ else if (strcmp(a->name, "RETURN") == 0){
-                        printf("ICI FIN \n");
-                        return concatener(2, codes[0]);
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        
+                        if (infos->val == NULL){
+                                infos->code = strdup(concatener(3, "return", codes[0]->code, ";\n"));
+                        } else {
+                                char * tmp = codes[1]->code;
+                                infos->code = concatener(4, tmp, codes[0]->code, "return", codes[1]->val);
+                        }
+                        return infos;
+                } else if (strcmp (a->name, "main") == 0){ 
+                        int i = 0;
+                        if(length_children == 0)
+                                return codes[0];
+
+                        while(i < length_children - 1){
+                                if(length_children == 1)
+                                        break;
+                                strcat(codes[0]->code, codes[i+1]->code);
+                                i++;
+                        }
+                        return codes[0];
                 } else { // Soit le cas n'est pas implémenté, soit il s'agit d'une variable ou une constante
-                        printf("ICI FIN \n");
-                        if(a->name != NULL)
-                                return a->name;
+                        if(a->name != NULL){
+                                  code_info * infos = malloc(sizeof(code_info));
+                                  assert(infos != NULL);
+                                  infos->code = a->name;
+                                return infos;
+                        }
+                                
                         printf("ERREUR: il y a un pb d'implémentation ... \n");
                         exit(1);
                 }

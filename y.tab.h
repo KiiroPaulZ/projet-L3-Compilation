@@ -88,18 +88,18 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 26 "structfe.y"
+#line 25 "structfe.y"
 {
-    char *nom; // represente nom des variables, fonctions, structures
-    char* val;
-    type_t type; // int ou void (variable ou fonction)
-    // Une fonction prend 0 OU N parametre(s)
-    param_t param; //
-    param_list_t * param_list;
-    //liste_t *liste; // liste de parametres
-    node_t * node;
-    nodes_list_t * node_list;
-    symbole_t * symb;
+        char *nom; // represente nom des variables, fonctions, structures
+        char* val;
+
+        /*type_t type; // int ou void (variable ou fonction)
+        param_t param; 
+        param_list_t * param_list;*/
+
+        node_t * node;
+        nodes_list_t * node_list;
+        symbole_t * symb;
 }
 /* Line 1529 of yacc.c.  */
 #line 106 "y.tab.h"

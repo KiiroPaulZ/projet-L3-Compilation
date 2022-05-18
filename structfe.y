@@ -8,32 +8,31 @@
         #define PURPLE "\033[0;35m"
         #define ERROR RED"ERROR: "WHITE
         #define WARNING PURPLE"WARNING: "WHITE
+
         int yylex();
         int yylineno;
         int yyerror(char *);
-        table_t *pile;
-        //param_list_stack_t * param_list_stack;
-        //int pos;
+
         void print_table();
         void semanticAnalysis(nodes_list_t * n);
         int paramMatching(param_list_t * a, param_list_t * b);
         char * marker = "prog"; // Pour verifier si une variable globale est redefinie !
         char * type_check(nodes_list_t * a);
         int verifyParamIntegrity(param_list_t * pls);
-        char * generation (node_t * a);
+        code_info * generation (node_t * a);
 %}
 
 %union{
-    char *nom; // represente nom des variables, fonctions, structures
-    char* val;
-    type_t type; // int ou void (variable ou fonction)
-    // Une fonction prend 0 OU N parametre(s)
-    param_t param; //
-    param_list_t * param_list;
-    //liste_t *liste; // liste de parametres
-    node_t * node;
-    nodes_list_t * node_list;
-    symbole_t * symb;
+        char *nom; // represente nom des variables, fonctions, structures
+        char* val;
+
+        /*type_t type; // int ou void (variable ou fonction)
+        param_t param; 
+        param_list_t * param_list;*/
+
+        node_t * node;
+        nodes_list_t * node_list;
+        symbole_t * symb;
 }
 
 %type<node> expression primary_expression postfix_expression unary_expression program type_specifier declaration_specifiers
@@ -61,7 +60,7 @@
 %%
 
 primary_expression
-        : IDENTIFIER  { //printf("lettre a\n");
+        : IDENTIFIER  { 
                         symbole_t * s = NULL;
                         node_t * n = NULL;
                         table_t * stack_head = pile;
@@ -70,21 +69,13 @@ primary_expression
                         n->symb = s;
                         $$ = n;
                       }
-        | CONSTANT {    //printf("lettre b\n");
-                        node_t * n = NULL; n = create_node(strdup($1), NULL); n->isConst = true; $$ = n; 
-                   }
-        | '(' expression ')' { 
-                        //printf("lettre c\n");
-                        $$ = $2; 
-                }
+        | CONSTANT { node_t * n = NULL; n = create_node(strdup($1), NULL); n->isConst = true; $$ = n; }
+        | '(' expression ')' { $$ = $2; }
         ;
 
 postfix_expression
-        : primary_expression { //printf("lettre d\n");
-                $$ = $1; 
-        }
+        : primary_expression { $$ = $1; }
         | postfix_expression '(' ')' { // appel de fonction anonyme
-                //printf("lettre e\n");
                 if($1->symb != NULL && $1->symb->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength($1->symb->param_list))){ // Verification s'il s'agit bien d'un appel de fonction et si son nombre de paramètre correspond
                         $$ = $1;
                 } else {
@@ -94,29 +85,24 @@ postfix_expression
                 }
         }
         | postfix_expression '(' argument_expression_list ')' { // appel de fonction
-                //printf("lettre f\n");
                 // S'il s'agit d'une fonction, qu'il a un symbole associé et que la liste des parametres correspond à la liste de parametres définie initialement
                 if($1->symb != NULL && $1->symb->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength($1->symb->param_list)) && verifyParamIntegrity(param_list_stack) == 1){
                         if($1->symb->is_function_def){
-                                //print_complete_table();
                                 clean_param_list_stack(); // Après chaque utilisation il faut penser à clean la pile de parametre globale
                                 $$ = $1;
                         } else {
                                 printf("%sLigne %d, La fonction '%s' existe, mais il n'y a aucune reference.\n", ERROR, yylineno, $1->name);
                                 exit(1);
                         }
-                } else if($1->symb != NULL && $1->symb->ts == FONCTION_) { // peut-etre existe-il une surcharge de cette fonction
-                        //printf("%d - %d| c'est une fun (en f')? %d\n", paramLength(param_list_stack), paramLength($1->symb->param_list), $1->symb->ts == FONCTION_);
+                } else if($1->symb != NULL && $1->symb->ts == FONCTION_) { // peut-etre existe-il une "surcharge" de cette fonction
                         int n = 1;
                         symbole_t * sy = NULL;
-                        while(sy == NULL){ // Tant qu'il y a des occurences de la fonction, on regarde ses surcharges
+                        while(sy == NULL){ // Tant qu'il y a des occurences de la fonction, on regarde "ses surcharges"
                                 sy = rechercher_global(pile, $1->symb->nom, n, "");
                                 if(sy == NULL)
                                         break;
                                 if(sy->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength(sy->param_list)) && verifyParamIntegrity(param_list_stack) == 1){
-                                        //printf("%d - %d| c'est une fun (en f')? %d\n", paramLength(param_list_stack), paramLength(sy->param_list), sy->ts == FONCTION_);
-                                        if(sy->is_function_def){
-                                                //print_complete_table();
+                                        if(sy->is_function_def) {
                                                 clean_param_list_stack(); // Après chaque utilisation il faut penser à clean la pile de parametre globale
                                                 $$ = $1;
                                         } else {
@@ -130,124 +116,108 @@ postfix_expression
                                 n++;
                         }
                         if(sy == NULL){
-                                //print_complete_table();
-                                //printf("%d - %d| c'est une fun (en f2)? %d\n", paramLength(param_list_stack), paramLength($1->symb->param_list), $1->symb->ts == FONCTION_);
                                 clean_param_list_stack();
                                 printf("%sLigne %d, la fonction n'est pas déclaré et/ou le nombre de paramètres n'est pas valide!\n",ERROR, yylineno);
                                 exit(1);
                         }
-                }else {
-                        //print_complete_table();
-                        //printf("%d - %d| c'est une fun (en f)? %d\n", paramLength(param_list_stack), paramLength($1->symb->param_list), $1->symb->ts == FONCTION_);
-                        clean_param_list_stack();
-                        printf("%sLigne %d, la fonction n'est pas déclaré et/ou le nombre de paramètres n'est pas valide!\n",ERROR, yylineno);
-                        exit(1);
-                }
+                } else  {
+                                clean_param_list_stack();
+                                printf("%sLigne %d, la fonction n'est pas déclaré et/ou le nombre de paramètres n'est pas valide!\n",ERROR, yylineno);
+                                exit(1);
+                        }
         }
-        | postfix_expression '.' IDENTIFIER { 
-                                                //printf("lettre g\n");
+        | postfix_expression '.' IDENTIFIER {
                                                 node_t * n = NULL; 
                                                 n = create_node(".", mergeNodes(2, $1, create_node(strdup($3), NULL))); 
                                                 $$ = n;
                                             }
-        | postfix_expression PTR_OP IDENTIFIER { 
-                //printf("lettre h\n");
-                                                node_t * n = NULL; 
-                                                n = create_node("->", mergeNodes(2, $1, create_node(strdup($3), NULL))); 
-                                                $$ = n; 
-                                               }
+        | postfix_expression PTR_OP IDENTIFIER  { 
+                                                        node_t * n = NULL; 
+                                                        n = create_node("->", mergeNodes(2, $1, create_node(strdup($3), NULL))); 
+                                                        $$ = n; 
+                                                }
         ;
 
 argument_expression_list
-        : expression {
-                // On sauvegarde des informations pour le paramètre dans la ts et on l'ajoute à la pile des paramètres courants
-                //printf("lettre i\n");
-                if($1->symb == NULL){
-                        symbole_t * s = malloc(sizeof(symbole_t));
-                        s->nom = $1->name;
-                        $1->symb = s;
-                }
-                addParam(&param_list_stack, $1->symb);
-        }
-        | argument_expression_list ',' expression{
-                //printf("lettre j\n");
-                if($3->symb == NULL){ // Si le noeud n'a pas de symbole c'est qu'il s'agit d'une opération, donc on lui creer un symbole "vide"
-                        symbole_t * s = malloc(sizeof(symbole_t));
-                        s->nom = $3->name;
-                        $3->symb = s;
-                }
-                addParam(&param_list_stack, $3->symb);
-        }
+        : expression    {
+                                // On sauvegarde des informations pour le paramètre dans la ts et on l'ajoute à la pile des paramètres courants
+                                if($1->symb == NULL){
+                                        symbole_t * s = malloc(sizeof(symbole_t));
+                                        s->nom = $1->name;
+                                        $1->symb = s;
+                                }
+                                addParam(&param_list_stack, $1->symb);
+                        }
+        | argument_expression_list ',' expression       {
+
+                                                                if($3->symb == NULL){ // Si le noeud n'a pas de symbole c'est qu'il s'agit d'une opération, donc on lui creer un symbole "vide"
+                                                                        symbole_t * s = malloc(sizeof(symbole_t));
+                                                                        s->nom = $3->name;
+                                                                        $3->symb = s;
+                                                                }
+                                                                addParam(&param_list_stack, $3->symb);
+                                                        }
         ;
 
 unary_expression
-        : postfix_expression {$$ = $1;}
+        : postfix_expression { $$ = $1; }
         | unary_operator unary_expression {
-                                                //printf("lettre k\n");
                                                 node_t * n = NULL;
                                                 n = create_node(strdup($1), mergeNodes(1,$2));
-                                                //n->type = $2->type;
                                                 $$ = n;
                                           }
-        | SIZEOF unary_expression {
-                //printf("lettre l\n");
-                $$ = create_node("SIZEOF", mergeNodes(1,$2));
-        }
+        | SIZEOF unary_expression { $$ = create_node("SIZEOF", mergeNodes(1,$2)); }
         ;
 
 unary_operator
-        : '&' {$$="&";}
-        | '*' {$$="*";}
-        | '-' {$$="-";}
+        : '&' { $$="&"; }
+        | '*' { $$="*"; }
+        | '-' { $$="-"; }
         ;
 
 multiplicative_expression
-        : unary_expression {$$ = $1;}
-        | multiplicative_expression '*' unary_expression {$$ = create_node("*", mergeNodes(2,$1,$3));}
-        | multiplicative_expression '/' unary_expression {$$ = create_node("/", mergeNodes(2,$1,$3));}
+        : unary_expression { $$ = $1; }
+        | multiplicative_expression '*' unary_expression { $$ = create_node("*", mergeNodes(2,$1,$3)); }
+        | multiplicative_expression '/' unary_expression { $$ = create_node("/", mergeNodes(2,$1,$3)); }
         ;
 
 additive_expression
-        : multiplicative_expression {$$ = $1;}
-        | additive_expression '+' multiplicative_expression {$$ = create_node("+", mergeNodes(2,$1,$3));}
-        | additive_expression '-' multiplicative_expression {$$ = create_node("-", mergeNodes(2,$1,$3));}
+        : multiplicative_expression { $$ = $1; }
+        | additive_expression '+' multiplicative_expression { $$ = create_node("+", mergeNodes(2,$1,$3)); }
+        | additive_expression '-' multiplicative_expression { $$ = create_node("-", mergeNodes(2,$1,$3)); }
         ;
 
 relational_expression
-        : additive_expression {$$ = $1;}
-        | relational_expression '<' additive_expression {$$ = create_node("<", mergeNodes(2,$1,$3));}
-        | relational_expression '>' additive_expression {$$ = create_node(">", mergeNodes(2,$1,$3));}
-        | relational_expression LE_OP additive_expression {$$ = create_node("<=", mergeNodes(2,$1,$3));}
-        | relational_expression GE_OP additive_expression {$$ = create_node(">=", mergeNodes(2,$1,$3));}
+        : additive_expression { $$ = $1; }
+        | relational_expression '<' additive_expression { $$ = create_node("<", mergeNodes(2,$1,$3)); }
+        | relational_expression '>' additive_expression { $$ = create_node(">", mergeNodes(2,$1,$3)); }
+        | relational_expression LE_OP additive_expression { $$ = create_node("<=", mergeNodes(2,$1,$3)); }
+        | relational_expression GE_OP additive_expression { $$ = create_node(">=", mergeNodes(2,$1,$3)); }
         ;
 
 equality_expression
-        : relational_expression {$$ = $1;}
-        | equality_expression EQ_OP relational_expression {$$ = create_node("==", mergeNodes(2,$1,$3));}
-        | equality_expression NE_OP relational_expression {$$ = create_node("!=", mergeNodes(2,$1,$3));}
+        : relational_expression { $$ = $1; }
+        | equality_expression EQ_OP relational_expression { $$ = create_node("==", mergeNodes(2,$1,$3)); }
+        | equality_expression NE_OP relational_expression { $$ = create_node("!=", mergeNodes(2,$1,$3)); }
         ;
 
 logical_and_expression
-        : equality_expression {$$ = $1;}
-        | logical_and_expression AND_OP equality_expression {$$ = create_node("&&", mergeNodes(2,$1,$3));}
+        : equality_expression { $$ = $1; }
+        | logical_and_expression AND_OP equality_expression { $$ = create_node("&&", mergeNodes(2,$1,$3)); }
         ;
 
 logical_or_expression
-        : logical_and_expression {$$ = $1;}
-        | logical_or_expression OR_OP logical_and_expression {$$ = create_node("||", mergeNodes(2,$1,$3));}
+        : logical_and_expression { $$ = $1; }
+        | logical_or_expression OR_OP logical_and_expression { $$ = create_node("||", mergeNodes(2,$1,$3)); }
         ;
 
 expression
-        : logical_or_expression {$$ = $1;}
-        | unary_expression '=' expression {
-                $$ = create_node("=", mergeNodes(2,$1,$3));
-        }
+        : logical_or_expression { $$ = $1; }
+        | unary_expression '=' expression { $$ = create_node("=", mergeNodes(2,$1,$3)); }
         ;
 
 declaration
         : declaration_specifiers declarator ';' {       
-                                                        //printf("lettre m %s\n", $2->name);
-
                                                         if($1->type == VOID_){
                                                                 printf("%sLigne %d, vous ne pouvez pas déclarer une variable de type void.\n", ERROR, yylineno);
                                                                 exit(1);
@@ -257,18 +227,15 @@ declaration
                                                         table_t * stack_head = pile;
                                                         
                                                         if(stack_head == NULL){
-                                                                //printf("l%d stackhead null\n", yylineno);
-                                                                table_t *table = nouvelle_table(); push(table); // Si la pile est vide on l'initialise
+                                                                table_t *table = nouvelle_table(); // Si la pile est vide on l'initialise
+                                                                push(table); 
                                                         }
                                                         
                                                         table_t * current = stack_head;
 
                                                         if($1->type == STRUCT_){
-                                                                printf("il a vu (l %d) que ct un struct %s\n",yylineno, $1->children->first->name);
-                                                                //print_complete_table();
+                                                                symbole_t * s = rechercher_global(current->preced, $1->children->first->name, 0, ""); 
 
-                                                                symbole_t * s = rechercher_global(current->preced, $1->children->first->name, 0, ""); //rechercher(current->preced->symbole, $1->children->first->name);
-                                                                //printf("res : %d\n", s != NULL);
                                                                 if(s == NULL){
                                                                         printf("%sLigne %d, cette structure n'est pas définie.\n",ERROR, yylineno);
                                                                         exit(1);
@@ -282,22 +249,15 @@ declaration
 
                                                         if(stack_head != NULL && stack_head->preced != NULL && stack_head->preced->symbole != NULL)
                                                                 s2 = rechercherStack((getSymbole(stack_head->preced->symbole,-1))->param_list, $2->name); // Je vérifie aussi si ce que je déclare n'a pas le meme nom qu'un parametre dans la définition de fonction courante
-                                                        //printf("s2 vaut %d\n", s2 != NULL);
                                                        
                                                         if(s != NULL && s->ts != FONCTION_ && strcmp(s->marker, marker) == 0 || ((rechercher_global(pile, $2->name, 0, "prog")) != NULL && strcmp((rechercher_global(pile, $2->name, 0, "prog"))->marker, marker) == 0) && (rechercher_global(pile, $2->name, 0, "prog"))->ts != FONCTION_ ){
-                                                                //print_complete_table();
-                                                                //printf("current mark : %s\n", marker);
-                                                                //printf("%d / %d\n", s != NULL && s->ts != FONCTION_ , ((rechercher_global(pile, $2->name, 0, "prog")) != NULL && strcmp((rechercher_global(pile, $2->name, 0, "prog"))->marker, "prog") == 0) && (rechercher_global(pile, $2->name, 0, "prog"))->ts != FONCTION_ );
                                                                 printf("%sLigne %d, la variable '%s' a déjà été déclarée.\n", ERROR, yylineno, $2->name);
-                                                                //print_table();
                                                                 exit(1);
                                                         } else if (s2 != NULL) {
-                                                                //print_complete_table();
                                                                 printf("%sLigne %d, vous ne pouvez pas déclarer %s car elle est défini en parametre de fonction.\n", ERROR, yylineno, $2->name);
                                                                 exit(1);
                                                          }else if (s != NULL && s->ts == FONCTION_){ 
                                                                 s->param_list = copyParamList(param_list_stack);
-                                                                //displayParam(s->param_list);
                                                                 clean_param_list_stack();
                                                          }else {
                                                                 while(current != NULL){ // je vérifie si la variable a deja été declaré
@@ -308,7 +268,7 @@ declaration
                                                                         }
                                                                         current  = current ->preced;
                                                                 }
-                                                                //printf("ALORRS '%s'? %d\n", $2->name, rechercher_global(stack_head, $2->name, 0, "prog") != NULL);
+
                                                                 if(((rechercher_global(pile, $2->name, 0, "prog")) != NULL && strcmp((rechercher_global(pile, $2->name, 0, "prog"))->marker, "prog") == 0) && (rechercher_global(pile, $2->name, 0, "prog"))->ts != FONCTION_ ) // le -1 pour regarde les déclarations globales
                                                                         printf("%sLigne %d, la variable '%s' en masque une autre.\n", WARNING, yylineno, $2->name);
                                                                 table_t * t = *top(); // Le symbole n'existe pas, il faut le définir
@@ -325,7 +285,6 @@ declaration
                                                                 s->ts = $2->ts_t;
                                                                 if(param_list_stack != NULL){ // S'il a des paramètres, on les sauvegardes
                                                                         s->param_list = copyParamList(param_list_stack);
-                                                                        //displayParam(s->param_list);
                                                                         clean_param_list_stack();
                                                                 }
                                                                 s->marker = marker;
@@ -333,8 +292,6 @@ declaration
                                                                 s->position = pos;
                                                                 s->suivant = NULL;
                                                                 pos += s->taille;
-                                                                //printf("FIN DELCARATION DE %s\n", $2->name);
-                                                                //print_complete_table();
                                                         }
                                                 }
         | struct_specifier ';' {
@@ -343,7 +300,6 @@ declaration
                 table_t * current = stack_head;
                 
                 if(stack_head == NULL){
-                        //printf("l%d stackhead null\n", yylineno);
                         table_t *table = nouvelle_table(); push(table); // Si la pile est vide on l'initialise
                 }
 
@@ -352,7 +308,6 @@ declaration
 
                 if(s != NULL && s->field_list != NULL){
                         printf("%sLigne %d, la structure '%s' a déjà été déclarée.\n", ERROR, yylineno, $1->name);
-                        //print_table();
                         exit(1);
                 } else {
                         table_t * t = *top(); // Le symbole n'existe pas, il faut le définir
@@ -371,109 +326,99 @@ declaration
         ;
 
 declaration_specifiers
-        : EXTERN type_specifier {       //printf("lettre n\n");
+        : EXTERN type_specifier {
                                         switch($2->type){
-                                                case INT_:{ 
-                                                        node_t * n = create_node("type_EXTERN_INT", NULL);
-                                                        n->type = EXTERN_INT_;
-                                                        n->ts_t = FONCTION_;
-                                                        $$ = n;
-                                                        break;}
-                                                case VOID_:{
-                                                        node_t * n = create_node("type_EXTERN_VOID", NULL);
-                                                        n->type = EXTERN_VOID_;
-                                                        n->ts_t = FONCTION_;
-                                                        $$ = n;
-                                                        break;}
-                                                default:{
-                                                        node_t * n = create_node("type_EXTERN_STRUCT", NULL);
-                                                        n->type = EXTERN_STRUCT_;
-                                                        n->ts_t = FONCTION_;
-                                                        $$ = n;
-                                                        break;}
+                                                case INT_:      { 
+                                                                        node_t * n = create_node("type_EXTERN_INT", NULL);
+                                                                        n->type = EXTERN_INT_;
+                                                                        n->ts_t = FONCTION_;
+                                                                        $$ = n;
+                                                                        break;
+                                                                }
+                                                case VOID_:     {
+                                                                        node_t * n = create_node("type_EXTERN_VOID", NULL);
+                                                                        n->type = EXTERN_VOID_;
+                                                                        n->ts_t = FONCTION_;
+                                                                        $$ = n;
+                                                                        break;
+                                                                }
+                                                default:        {
+                                                                        node_t * n = create_node("type_EXTERN_STRUCT", NULL);
+                                                                        n->type = EXTERN_STRUCT_;
+                                                                        n->ts_t = FONCTION_;
+                                                                        $$ = n;
+                                                                        break;
+                                                                }
                                         }
                                 }
-        | type_specifier {$$ = $1;}
+        | type_specifier { $$ = $1; }
         ;
 
 type_specifier
-        : VOID { node_t * n = create_node("type_VOID", NULL); n->type = VOID_; $$ = n;}
-        | INT { node_t * n = create_node("type_INT", NULL); n->type = INT_; $$ = n;}
-        | struct_specifier {node_t * n = create_node("type_STRUCT", mergeNodes(1, $1)); n->type = STRUCT_; n->ts_t = STRUCTURE_ ; $$ = n;} // un noeud de type struct avec pour enfant le nom de la structure
+        : VOID { node_t * n = create_node("type_VOID", NULL); n->type = VOID_; $$ = n; }
+        | INT { node_t * n = create_node("type_INT", NULL); n->type = INT_; $$ = n; }
+        | struct_specifier { node_t * n = create_node("type_STRUCT", mergeNodes(1, $1)); n->type = STRUCT_; n->ts_t = STRUCTURE_ ; $$ = n; } // un noeud de type struct avec pour enfant le nom de la structure
         ;
 
 struct_specifier
-        : STRUCT IDENTIFIER '{' struct_declaration_list '}' {
-                //printf("lettre m2\n");
-                node_t * n = create_node(strdup($2), NULL);
-                symbole_t * s = malloc(sizeof(symbole_t));
-                s->field_list = field_list_stack;
-                clean_field_list_stack();
-                n->symb = s;
-                $$ = n;
-        }
-        | STRUCT '{' struct_declaration_list '}' { printf("%sLigne %d, les structures anonymes ne sont pas autorisées.\n",ERROR, yylineno); exit(1);}
-        | STRUCT IDENTIFIER {
-                //printf("lettre m2\n");
-                $$ = create_node(strdup($2), NULL);
-        }
+        : STRUCT IDENTIFIER '{' struct_declaration_list '}'     { 
+                                                                        node_t * n = create_node(strdup($2), NULL);
+                                                                        symbole_t * s = malloc(sizeof(symbole_t));
+                                                                        s->field_list = field_list_stack;
+                                                                        clean_field_list_stack();
+                                                                        n->symb = s;
+                                                                        $$ = n;
+                                                                }
+        | STRUCT '{' struct_declaration_list '}' { printf("%sLigne %d, les structures anonymes ne sont pas autorisées.\n",ERROR, yylineno); exit(1); }
+        | STRUCT IDENTIFIER { $$ = create_node(strdup($2), NULL); }
         ;
 
 struct_declaration_list
-        : struct_declaration {addField(&field_list_stack, $1); $$ = NULL;}
-        | struct_declaration_list struct_declaration { addField(&field_list_stack, $2); $$ = NULL;}
+        : struct_declaration { addField(&field_list_stack, $1); $$ = NULL; }
+        | struct_declaration_list struct_declaration { addField(&field_list_stack, $2); $$ = NULL; }
         ;
 
 struct_declaration
-        : type_specifier declarator ';' {
-                //printf("lettre t2\n");
-                char * nom = $2->name; // Je sauvegarde les informations
-                symbole_t * s;
-                s = malloc(sizeof(symbole_t));
-                s->type = $1->type;
-                if(nom[0] == '*'){
-                        s->isPtr = true;
-                        nom++; // on retire le premier caractere
-                } else {
-                        s->isPtr = false;
-                }
-                s->nom = nom;
-                $$ = s;
-        }
+        : type_specifier declarator ';'         {
+                                                        char * nom = $2->name; // Je sauvegarde les informations
+                                                        symbole_t * s;
+                                                        s = malloc(sizeof(symbole_t));
+                                                        s->type = $1->type;
+                                                        if(nom[0] == '*'){
+                                                                s->isPtr = true;
+                                                                nom++; // on retire le premier caractere
+                                                        } else {
+                                                                s->isPtr = false;
+                                                        }
+                                                        s->nom = nom;
+                                                        $$ = s;
+                                                }
         ;
 
 declarator
-        : '*' direct_declarator { 
-                //printf("lettre o\n");
-                char p[strlen($2->name)+2]; 
-                sprintf(p, "*%s", $2->name);
-                $2->name = strdup(p);
-                $$ = $2;
-        }
+        : '*' direct_declarator         {
+                                                char p[strlen($2->name)+2]; 
+                                                sprintf(p, "*%s", $2->name);
+                                                $2->name = strdup(p);
+                                                $$ = $2;
+                                        }
         | direct_declarator { $$ = $1; }
         ;
 
 direct_declarator
-        : IDENTIFIER {node_t * n = create_node(strdup($1), NULL); n->ts_t = VARIABLE_; $$ = n;}
+        : IDENTIFIER { node_t * n = create_node(strdup($1), NULL); n->ts_t = VARIABLE_; $$ = n; }
         | '(' declarator ')' { $$ = $2; }
-        | direct_declarator '(' parameter_list ')' {node_t * n = $1; n->ts_t = FONCTION_; $$ = n;}
-        | direct_declarator '(' ')' {node_t * n = $1; n->ts_t = FONCTION_; $$ = n;}
+        | direct_declarator '(' parameter_list ')' { node_t * n = $1; n->ts_t = FONCTION_; $$ = n; }
+        | direct_declarator '(' ')' { node_t * n = $1; n->ts_t = FONCTION_; $$ = n; }
         ;
 
 parameter_list
-        : parameter_declaration {
-                //printf("lettre r\n");
-                addParam(&param_list_stack, $1);
-        }
-        | parameter_list ',' parameter_declaration {
-                //printf("lettre s\n");
-                addParam(&param_list_stack, $3);
-        }
+        : parameter_declaration { addParam(&param_list_stack, $1); }
+        | parameter_list ',' parameter_declaration { addParam(&param_list_stack, $3); }
         ;
 
 parameter_declaration
         : declaration_specifiers declarator {
-                //printf("lettre t\n");
                 char * nom = strdup($2->name); // Je sauvegarde les informations
                 symbole_t * s;
                 s = malloc(sizeof(symbole_t));
@@ -506,8 +451,9 @@ compound_statement
 
 ACCOO : '{' { table_t *table = nouvelle_table(); push(table);}
 ACCOF : '}' {   /* NE PAS TOUCHER */
+
                 marker = "prog";
-                //printf("lettre w\n");
+                
                 /*table_t *table = pop(); 
                 detruire_table(&table);
                 if((*top()) != NULL){ // autrement dit si la pile est vide    
@@ -515,6 +461,7 @@ ACCOF : '}' {   /* NE PAS TOUCHER */
                 } else {
                     printf("[]\n");
                 }*/
+
                 /* ************* */
             }
 
@@ -545,131 +492,115 @@ iteration_statement
 
 jump_statement
         : RETURN ';' { $$ = create_node("RETURN", NULL);}
-        | RETURN expression ';' {$$ = create_node("RETURN", mergeNodes(1, $2)); /*$$ = create_node("jump_statement", mergeNodes(3,create_node("return", NULL), $2, create_node(";", NULL)));*/}
+        | RETURN expression ';' {$$ = create_node("RETURN", mergeNodes(1, $2)); }
         ;
 
-program_start: program {        
-                                printf("AFFICHAGE FINAL\n");
+program_start: program  {       //Obliger de séparer le start du program car on affiche chaque AST des fonctions, donc on ne veux pas un arret prématuré
+                                printf("FIN ANALYSE!\n");
                                 print_tree(mergeNodes(1,$$), "");
-                                //Obliger de séparer le start du program car on affiche chaque AST des fonctions, donc on ne veux pas un arret prématuré
                                 
-                                print_complete_table();
-                                table_t *table = pop(); 
-                                detruire_table(&table);
-
-                                /*if((*top()) != NULL){ // autrement dit, si la pile est vide    
-                                        print_table();
-                                } else {
-                                        printf("[]\n");
-                                }*/
+                                /* Il faudrait normalement vider la table */
+                                // ...
                         }
                 ;
 
 program
         : external_declaration {
-                printf("AFFICHAGE PREM1\n");
-                print_complete_table();
-                nodes_list_t * arbre = NULL;
-                if($1 != NULL){
-                        arbre = mergeNodes(1, $1);
-                        print_tree(arbre, "");
-                        printf("TYPECHECK ==> DEBUT\n");
-                        // Il faut verifier chacune de ses branches
-                        nodes_list_t * current = arbre->first->children;
-                        int i = 0;
-                        while(current->next != NULL){ // je ne gere pas le return pour le moment
-                                printf("i = %d\n", i);
-                                type_check(current);
-                                current = current->next;
-                                i++;
-                        }
-                        i++;
-                        printf("i = %d\n", i);
-                        switch(arbre->first->symb->type){
-                                case INT_ :{
-                                        if(strcmp(type_check(current), "int") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "int *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "int") != 0 && strcmp(type_check(current), "int *") != 0)){
-                                                printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
-                                                exit(1);
-                                        }
-                                        break;
-                                }
+                                        print_complete_table();
+                                        nodes_list_t * arbre = NULL;
+                                        if($1 != NULL){
+                                                arbre = mergeNodes(1, $1);
+                                                print_tree(arbre, "");
+                                                // Il faut verifier chacune de ses branches
+                                                nodes_list_t * current = arbre->first->children;
+                                                int i = 0;
+                                                while(current->next != NULL){ // je ne gere pas le return pour le moment
+                                                        type_check(current);
+                                                        current = current->next;
+                                                        i++;
+                                                }
+                                                i++;
+                                                switch(arbre->first->symb->type){
+                                                        case INT_ :{
+                                                                if(strcmp(type_check(current), "int") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "int *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "int") != 0 && strcmp(type_check(current), "int *") != 0)){
+                                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
+                                                                        exit(1);
+                                                                }
+                                                                break;
+                                                        }
 
-                                case VOID_ : {
-                                        if(strcmp(type_check(current), "void") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "void *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "void") != 0 && strcmp(type_check(current), "void *") != 0)){
-                                                 printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
-                                                exit(1);
-                                        }
-                                        break;
-                                }
+                                                        case VOID_ : {
+                                                                if(strcmp(type_check(current), "void") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "void *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "void") != 0 && strcmp(type_check(current), "void *") != 0)){
+                                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
+                                                                        exit(1);
+                                                                }
+                                                                break;
+                                                        }
 
-                                default : { // STRUCT_
-                                        if(strcmp(type_check(current), "struct") != 0){
-                                                 printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
-                                                exit(1);
+                                                        default : { // STRUCT_
+                                                                if(strcmp(type_check(current), "struct") != 0){
+                                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
+                                                                        exit(1);
+                                                                }
+                                                                break;
+                                                        }             
+                                                }
+                                                printf("%s\n", generation(arbre->first)->code);
+                                                printf("TYPECHECK ==> OK\n");
                                         }
-                                        break;
-                                }             
-                        }
-                        printf("TYPECHECK ==> OK\n");
-                        printf("%s", generation(arbre->first));
-                }
-                $$ = create_node("prog", mergeNodes(1, $1));
-        }
+                                        $$ = create_node("prog", mergeNodes(1, $1));
+                                }
         | program external_declaration {
-                printf("AFFICHAGE PREM2\n");
-                print_complete_table();
-                nodes_list_t * arbre = NULL;
-                if($2 != NULL){
-                        arbre = mergeNodes(1, $2);
-                        print_tree(arbre, "");
-                        printf("TYPECHECK ==> DEBUT\n");
-                        nodes_list_t * current = arbre->first->children;
-                        int i = 0;
-                        while(current->next != NULL){ // je ne gere pas le return pour le moment
-                                printf("i = %d\n", i);
-                                type_check(current);
-                                current = current->next;
-                                i++;
-                        }
-                        i++;
-                        printf("i = %d\n", i);
+                                                print_complete_table();
+                                                nodes_list_t * arbre = NULL;
+                                                if($2 != NULL){
+                                                        arbre = mergeNodes(1, $2);
+                                                        print_tree(arbre, "");
+                                                        nodes_list_t * current = arbre->first->children;
+                                                        int i = 0;
+                                                        while(current->next != NULL){ // je ne gere pas le return pour le moment
+                                                                type_check(current);
+                                                                current = current->next;
+                                                                i++;
+                                                        }
+                                                        i++;
 
-                        if(strcmp(current->first->name, "RETURN") != 0 && arbre->first->symb->type != VOID_){
-                                printf("%sIl n'y a pas de fonction de retour alors que la fonction n'est pas de type void.\n", ERROR);
-                                exit(1);
-                        } else if (strcmp(current->first->name, "RETURN") != 0 && arbre->first->symb->type == VOID_ && arbre->first->symb->isPtr == false){
-                                /* il n'y a rien a faire */
-                        } else {
-                                switch(arbre->first->symb->type){
-                                        case INT_ :{
-                                                if(strcmp(type_check(current), "int") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "int *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "int") != 0 && strcmp(type_check(current), "int *") != 0)){
-                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
-                                                        exit(1);
+                                                        if(strcmp(current->first->name, "RETURN") != 0 && arbre->first->symb->type != VOID_){
+                                                                printf("%sIl n'y a pas de fonction de retour alors que la fonction n'est pas de type void.\n", ERROR);
+                                                                exit(1);
+                                                        } else if (strcmp(current->first->name, "RETURN") != 0 && arbre->first->symb->type == VOID_ && arbre->first->symb->isPtr == false){
+                                                                /* il n'y a rien a faire */
+                                                        } else {
+                                                                switch(arbre->first->symb->type){
+                                                                        case INT_ :{
+                                                                                if(strcmp(type_check(current), "int") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "int *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "int") != 0 && strcmp(type_check(current), "int *") != 0)){
+                                                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
+                                                                                        exit(1);
+                                                                                }
+                                                                                break;
+                                                                        }
+
+                                                                        case VOID_ : {
+                                                                                if(strcmp(type_check(current), "void") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "void *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "void") != 0 && strcmp(type_check(current), "void *") != 0)){
+                                                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
+                                                                                        exit(1);
+                                                                                }
+                                                                                break;
+                                                                        }
+
+                                                                        default : { // STRUCT_
+                                                                                if(strcmp(type_check(current), "struct") != 0){
+                                                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
+                                                                                        exit(1);
+                                                                                }
+                                                                                break;
+                                                                        }             
+                                                                }
+                                                        }
+                                                        printf("TYPECHECK ==> OK\n");    
                                                 }
-                                                break;
+                                                $$ = create_node("prog", mergeNodes(1, $2));
                                         }
-
-                                        case VOID_ : {
-                                                if(strcmp(type_check(current), "void") == 0 &&  arbre->first->symb->isPtr == true || (strcmp(type_check(current), "void *") == 0 && arbre->first->symb->isPtr == false) || (strcmp(type_check(current), "void") != 0 && strcmp(type_check(current), "void *") != 0)){
-                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
-                                                        exit(1);
-                                                }
-                                                break;
-                                        }
-
-                                        default : { // STRUCT_
-                                                if(strcmp(type_check(current), "struct") != 0){
-                                                        printf("%sLe type de retour '%s' est different de celui de la fonction!\n", ERROR, type_check(current));
-                                                        exit(1);
-                                                }
-                                                break;
-                                        }             
-                                }
-                        }
-                        printf("TYPECHECK ==> OK\n");    
-                }
-                $$ = create_node("prog", mergeNodes(1, $2));
-        }
         ;
 
 external_declaration
@@ -678,86 +609,81 @@ external_declaration
         ;
 
 function_init
-        : declaration_specifiers declarator {
-                //printf("lettre omega\n");
-                /* Nouvelle regle syntaxique */
-                // Il fallait pouvoir agir sur la declaration des fonctions indépendamment des paramètres de celle-ci
-                marker = strdup($2->name);
-                symbole_t *s = NULL;
-                table_t * stack_head = pile;
-                if(stack_head == NULL){
-                        table_t *table = nouvelle_table(); push(table); // Si la pile est vide on l'initialise
-                }
+        : declaration_specifiers declarator     { /* Nouvelle regle syntaxique */
+                                                        // Il fallait pouvoir agir sur la declaration des fonctions indépendamment des paramètres de celle-ci
+                                                        marker = strdup($2->name);
+                                                        symbole_t *s = NULL;
+                                                        table_t * stack_head = pile;
 
-                while(stack_head != NULL){
-                        if(stack_head->symbole != NULL){
-                                s = rechercher(stack_head->symbole, $2->name);
-                                if(s != NULL)
-                                        break;
-                        }
-                        stack_head = stack_head->preced;
-                }
-                if(s != NULL && s->is_function_def == true && paramLength(s->param_list) == paramLength(param_list_stack)){
-                        printf("%sLigne %d, la fonction '%s' est déjà déclarée.\n", ERROR, yylineno, $2->name);
-                        exit(1);
-                } else {
-                        int n = 0;
-                        symbole_t * sy = NULL;
-                        while(sy == NULL){ // Tant qu'il y a des occurences de la fonction, on regarde ses surcharges
-                                sy = rechercher_global(stack_head, $2->name, n, "");
-                                if(sy == NULL){
-                                        if (s != NULL && s->is_function_def != true){
-                                                s->param_list = copyParamList(param_list_stack);
-                                                s->ts = FONCTION_;
-                                                //printf("ici !\n");
-                                                s->is_function_def = true;
-                                                clean_param_list_stack();
-                                                $$ = s;
-                                                break;
-                                        } else {
-                                                table_t * t = *top();
-                                                sy = ajouter(&(t->symbole), $2->name);
-                                                sy->type = $1->type;
-                                                sy->ts = FONCTION_;
-                                                sy->taille = sizeof($1->type);
-                                                sy->position = pos;
-                                                sy->suivant = NULL;
-                                                pos += sy->taille;
-                                                if(($2->name)[0] == '*')
-                                                        $2->name++;
-                                                sy->is_function_def = true; 
-                                                sy->param_list = copyParamList(param_list_stack);
-                                                clean_param_list_stack();
-                                                $$ = sy;
-                                                break; 
-                                        }
-                                }
-                                        
-                                if(sy != NULL && sy->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength(sy->param_list)) && sy->is_function_def){
-                                        printf("%sLigne %d, La fonction '%s' est déjà définie.\n", ERROR, yylineno, $2->name);
-                                        exit(1);
-                                } else if (sy != NULL && sy->ts == FONCTION_ && sy->is_function_def ) {
-                                        //printf("%d - %d\n", paramLength(param_list_stack), paramLength(sy->param_list));
-                                        //printf("ct une occur mais pas les memes params\n");
-                                        sy = NULL;
-                                } else {
-                                        sy = NULL;
-                                }
-                        
-                                n++;
-                        }
-                }
-        }
+                                                        if(stack_head == NULL){
+                                                                table_t *table = nouvelle_table(); push(table); // Si la pile est vide on l'initialise
+                                                        }
+
+                                                        while(stack_head != NULL){
+                                                                if(stack_head->symbole != NULL){
+                                                                        s = rechercher(stack_head->symbole, $2->name);
+                                                                        if(s != NULL)
+                                                                                break;
+                                                                }
+                                                                stack_head = stack_head->preced;
+                                                        }
+                                                        if(s != NULL && s->is_function_def == true && paramLength(s->param_list) == paramLength(param_list_stack)){
+                                                                printf("%sLigne %d, la fonction '%s' est déjà déclarée.\n", ERROR, yylineno, $2->name);
+                                                                exit(1);
+                                                        } else {
+                                                                int n = 0;
+                                                                symbole_t * sy = NULL;
+
+                                                                while(sy == NULL){ // Tant qu'il y a des occurences de la fonction, on regarde ses surcharges
+                                                                        sy = rechercher_global(stack_head, $2->name, n, "");
+                                                                        if(sy == NULL){
+                                                                                if (s != NULL && s->is_function_def != true){
+                                                                                        s->param_list = copyParamList(param_list_stack);
+                                                                                        s->ts = FONCTION_;
+                                                                                        s->is_function_def = true;
+                                                                                        clean_param_list_stack();
+                                                                                        $$ = s;
+                                                                                        break;
+                                                                                } else {
+                                                                                        table_t * t = *top();
+                                                                                        sy = ajouter(&(t->symbole), $2->name);
+                                                                                        sy->type = $1->type;
+                                                                                        sy->ts = FONCTION_;
+                                                                                        sy->taille = sizeof($1->type);
+                                                                                        sy->position = pos;
+                                                                                        sy->suivant = NULL;
+                                                                                        pos += sy->taille;
+                                                                                        if(($2->name)[0] == '*')
+                                                                                                $2->name++;
+                                                                                        sy->is_function_def = true; 
+                                                                                        sy->param_list = copyParamList(param_list_stack);
+                                                                                        clean_param_list_stack();
+                                                                                        $$ = sy;
+                                                                                        break; 
+                                                                                }
+                                                                        }
+                                                                                
+                                                                        if(sy != NULL && sy->ts == FONCTION_ && (paramLength(param_list_stack) == paramLength(sy->param_list)) && sy->is_function_def){
+                                                                                printf("%sLigne %d, La fonction '%s' est déjà définie.\n", ERROR, yylineno, $2->name);
+                                                                                exit(1);
+                                                                        } else if (sy != NULL && sy->ts == FONCTION_ && sy->is_function_def ) {
+                                                                                sy = NULL;
+                                                                        } else {
+                                                                                sy = NULL;
+                                                                        }
+                                                                        
+                                                                        n++;
+                                                                }
+                                                        }
+                                                }
 
 function_definition
-        :  function_init compound_statement {   
-                                                //print_tree($2, "");
-                                                //print_complete_table();
-                                                clean_param_list_stack(); // On nettoie la pile des paramètres par précaution
-                                                node_t * n  = create_node(getSymbole($1,-1)->nom,$2);
-                                                n->symb = $1;
-                                                $$ = n;
-                                        }
+        :  function_init compound_statement     {
+                                                        clean_param_list_stack(); // On nettoie la pile des paramètres par précaution
+                                                        node_t * n  = create_node(getSymbole($1,-1)->nom,$2);
+                                                        n->symb = $1;
+                                                        $$ = n;
+                                                }
         ;
 %%
         int yyerror(char *s){ // fonction pour détecter une erreur
@@ -768,7 +694,7 @@ function_definition
         int pos = 0;
         table_t * pile = NULL;
 
-        table_t ** top() {
+        table_t ** top(){
                 return &pile;
         }
 
@@ -804,33 +730,27 @@ function_definition
         symbole_t * rechercher_global(table_t * t, char * nom, int n, char * mark){
                 if(t != NULL){
                         table_t * table = t;
-                        //printf("==========\n");
                         while(table != NULL){
                                 symbole_t * s = NULL;
                                 symbole_t * depthS = NULL;
                                 depthS = table->symbole;
                                 while(1){
                                         s = rechercher(depthS, nom);
-                                        if(s != NULL){
-                                                //printf("POUR %s, s VAUT 1 ('%s') et mark: %s avec pour mark %s\n", nom, s->nom, s->marker, mark);
-                                                //printf("res %d\n",n);
-                                        }
-
-                                        if(s == NULL){
-                                                //printf("POUR %s, s VAUT NULL et mark: NULL\n", nom);
+                                        
+                                        if(s == NULL)
                                                 break;
-                                        }
+                                        
 
-                                        if(s != NULL && (s->marker != NULL && strcmp(s->marker, mark) == 0 || strcmp("", mark) == 0) && n == 0){ // "" pour faire une recherche classique
+                                        if(s != NULL && (s->marker != NULL && strcmp(s->marker, mark) == 0 || strcmp("", mark) == 0) && n == 0) // "" pour faire une recherche classique
                                                 return s;
-                                        }
+                                        
                                         if(s != NULL && (s->marker != NULL && strcmp(s->marker, mark) == 0 || strcmp("", mark) == 0))
                                                 n--;
+
                                         depthS = depthS->suivant;
                                 }
                                 table = table->preced;
                         }
-                        //printf("=====f=====\n");
                 }
                 return NULL;
         }
@@ -992,16 +912,10 @@ function_definition
 
         void print_tree(nodes_list_t * n, char * space){
                 printf("%s\n", n->first->name);
-                //current = n->children;
                 nodes_list_t * current = n->first->children;
                 char * newspace = "     ";
-                //char ntarget[strlen(space) + strlen(newspace) + 1];
                 while(current != NULL){ // Tant que le pere a des enfants
-                    //strcpy(ntarget, space);
-                    
                     printf("%s     |___> ", space);
-                    //strcat(ntarget, newspace);
-                    
                     printf("%s \n", current->first->name);
                     
                     nodes_list_t * depth_current = current->first->children;
@@ -1050,14 +964,12 @@ function_definition
                         }
                         st->suivant = p;
                 }
-        }
-
-        
+        }   
 
         param_list_t * copyParamList(param_list_t * stack){
-                if(stack == NULL){
+                if(stack == NULL)
                         return NULL;
-                }
+                
                 param_list_t * p = malloc(sizeof(param_list_t));
                 p->symbole = malloc(sizeof(symbole_t));
                 p->symbole->type = stack->symbole->type;
@@ -1070,7 +982,6 @@ function_definition
         symbole_t * rechercherStack(param_list_t * st, char * nom){
                 param_list_t * p = st;
                 while(p != NULL){
-                        //printf("%s et %s \n",nom, p->symbole->nom);
                         if(strcmp(nom, p->symbole->nom) == 0)
                                 return p->symbole;
                         p = p->suivant;
@@ -1088,17 +999,11 @@ function_definition
 
         void clean_param_list_stack(){
                 param_list_t ** stack = &param_list_stack;
-                //param_list_t * current = *stack;
-                while (*stack != NULL)
-                {       
-                        //current = NULL;
+                while (*stack != NULL){
                         *stack = (*stack)->suivant;
                 }
-                /*printf("=========%d-3========\n", yylineno);
-                
-                displayParam(param_list_stack);
-                printf("=================\n");*/
         }
+
         int paramLength(param_list_t * p){
                 param_list_t * current;
                 int count;
@@ -1184,11 +1089,10 @@ function_definition
                 }
         }
 
-
         field_list_t * copyFieldList(field_list_t * stack){
-                if(stack == NULL){
+                if(stack == NULL)
                         return NULL;
-                }
+
                 field_list_t * p = malloc(sizeof(field_list_t));
                 p->symbole = malloc(sizeof(symbole_t));
                 p->symbole->type = stack->symbole->type;
@@ -1218,17 +1122,11 @@ function_definition
 
         void clean_field_list_stack(){
                 field_list_t ** stack = &field_list_stack;
-                //param_list_t * current = *stack;
-                while (*stack != NULL)
-                {       
-                        //current = NULL;
+                while (*stack != NULL){
                         *stack = (*stack)->suivant;
                 }
-                /*printf("=========%d-3========\n", yylineno);
-                
-                displayParam(param_list_stack);
-                printf("=================\n");*/
         }
+
         int fieldLength(field_list_t * p){
                 field_list_t * current;
                 int count;
@@ -1245,7 +1143,6 @@ function_definition
                 param_list_t * current = pls;
                 table_t * stack_head = pile;
                 while(current != NULL){
-                        printf("la j'affiche symbole nom : %s\n", current->symbole->nom);
                         if(rechercher_global(stack_head, current->symbole->nom,0,marker) == NULL && rechercher_global(stack_head, current->symbole->nom,0,"prog") == NULL){ // Si un parametre nn'existe pas alors il y  a un probleme
                                 return 0;
                         }
@@ -1255,24 +1152,9 @@ function_definition
         }
 
         char * type_check(nodes_list_t * a){
-                /*printf("la\n");
-                if(a->first != NULL){
-                        if (a->first->name != NULL){
-                                printf("tout est bon\n");
-                        } else {
-                                printf("nom pb\n");
-                                exit(1);
-                        }
-                } else {
-                        printf("first pb \n");
-                        exit(1);
-                }*/
-                //printf("je suis avec %s\n", a->first->name);
                 if(strcmp(a->first->name, "=") == 0){
                         char * fg = type_check(a->first->children);
-                        //printf("fg vaut %s\n", fg);
                         char * fd = type_check(a->first->children->next);
-                        //printf("fd vaut %s\n", fd);
                         if(strcmp(fg, fd) == 0)
                                 return fg; 
                         printf("%sTYPECHECK: '=' attendait un type %s mais a reçu un type %s OU il s'agit d'un probleme de pointeurs.\n", ERROR, fg, fd);
@@ -1307,81 +1189,81 @@ function_definition
                 } else if (strcmp(a->first->name, "*") == 0){ // Il faut aussi vérifier s'il s'agit d'un pointeur
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0))
                                 return "int"; 
-                        }         
+                              
                         printf("%sTYPECHECK: '*' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
                         exit(1);
                 } else if (strcmp(a->first->name, "/") == 0){
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0))
                                 return "int"; 
-                        }         
+                              
                         printf("%sTYPECHECK: '/' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
                         exit(1);
                 } else if (strcmp(a->first->name, ">") == 0){
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0))
                                 return "int"; 
-                        }         
+                        
                         printf("%sTYPECHECK: '>' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
                         exit(1);
                 } else if (strcmp(a->first->name, "<") == 0){
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0))
                                 return "int"; 
-                        }         
+                
                         printf("%sTYPECHECK: '<' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
                         exit(1);
                 } else if (strcmp(a->first->name, ">=") == 0){
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0))
                                 return "int"; 
-                        }         
+                             
                         printf("%sTYPECHECK: '>=' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
                         exit(1);
                 } else if (strcmp(a->first->name, "<=") == 0){
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0))
                                 return "int"; 
-                        }         
+                                
                         printf("%sTYPECHECK: '<=' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
                         exit(1);
                 } else if (strcmp(a->first->name, "==") == 0){
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0))
                                 return "int"; 
-                        }         
+                         
                         printf("%sTYPECHECK: '==' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
                         exit(1);
                 } else if (strcmp(a->first->name, "!=") == 0){
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0))
                                 return "int"; 
-                        }         
+                               
                         printf("%sTYPECHECK: '!=' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
                         exit(1);
                 } else if (strcmp(a->first->name, "&&") == 0){
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0))
                                 return "int"; 
-                        }         
+                                
                         printf("%sTYPECHECK: '&&' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
                         exit(1);
                 } else if (strcmp(a->first->name, "||") == 0){
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0)){
+                        if((strcmp(fg, "int") == 0 && strcmp(fd, "int") == 0))
                                 return "int"; 
-                        }         
+                               
                         printf("%sTYPECHECK: '||' attendait un type int mais a reçu un type %s et %s.\n", ERROR, fg, fd);
                         exit(1);
                 } else if (strcmp(a->first->name, "&") == 0){
@@ -1400,17 +1282,17 @@ function_definition
                 } else if (strcmp(a->first->name, "->") == 0){
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if(strcmp(fg, "struct") == 0 && a->first->children->first->symb->isPtr == true){
+                        if(strcmp(fg, "struct") == 0 && a->first->children->first->symb->isPtr == true)
                                 return fd; 
-                        }         
+                              
                         printf("%sTYPECHECK: '->' attendait un type struct mais a reçu un type %s (peut-etre pas un pointeur?) .\n", ERROR, fg);
                         exit(1);
                 } else if (strcmp(a->first->name, ".") == 0){
                         char * fg = type_check(a->first->children);
                         char * fd = type_check(a->first->children->next);
-                        if(strcmp(fg, "struct") == 0 && a->first->children->first->symb->isPtr == false){
+                        if(strcmp(fg, "struct") == 0 && a->first->children->first->symb->isPtr == false)
                                 return fd; 
-                        }         
+                                
                         printf("%sTYPECHECK: '.' attendait un type struct mais a reçu un type %s (peut-etre un pointeur?) .\n", ERROR, fg);
                         exit(1);
                 } else if (strcmp(a->first->name, "RETURN") == 0){
@@ -1422,7 +1304,7 @@ function_definition
                         }
                         
                 } else { // Si on entre ici, soit on a pas implémenté un opérateur, soit il faut faire remonter un type
-                        //JE RECHERCHE DANS LA TS L'ELEMENT COURANT ...
+                        //JE RECHERCHE DANS LA TS L'ELEMENT COURANT
                         
                         table_t * stack_head = pile;
                         symbole_t * s = NULL;
@@ -1432,11 +1314,6 @@ function_definition
                         }
                         
                         s = rechercher_global(stack_head, a->first->name, 0, "");
-
-                        /*if(s->ts == FONCTION_){
-                                printf("PAS IMPLEMENTEZ\n");
-                                exit(1);
-                        }*/
 
                         if (s != NULL) {
                                 type_t res;
@@ -1491,11 +1368,11 @@ function_definition
                 return res;
         }
 
-        char * generation (node_t * a){
+        code_info * generation (node_t * a){
                 // Init
                 nodes_list_t * arbre = a->children; // Premier fils
                 int length_children = lengthChildren(a); // Nb de ses enfants
-                char * codes[length_children];
+                code_info * codes[length_children];
                 int i = 0;
 
                 // Je recupere dans un premier temps le code des enfants du noeud courant
@@ -1507,42 +1384,131 @@ function_definition
 
                 // Je peux maintenant traiter le code du noeud en parametre
                 if(strcmp(a->name, "=") == 0){
-                        return concatener(4, codes[0], " = ", codes[1], ";\n");
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        if(infos->val == NULL){
+                                infos->code = strdup(concatener(4, codes[0]->code, "=", codes[1]->code, ";\n"));
+                        } else {
+                                char * tmp = codes[1]->code;
+                                infos->code = concatener(4, tmp, codes[0]->code, "=", codes[1]->val);
+                        }
+                        return infos;
                 } else if (strcmp(a->name, "+") == 0) {
-                        return concatener(5, "_t = ", codes[0], " + ", codes[1], ";\n");
-                } /*else if (strcmp(a->name, "-") == 0){ // Il faut aussi verifier s'il s'agit d'une opération unaire
-                        
+                         // ^ il faudra introduire le nombre de var temp créées
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        if(infos->val == NULL){
+                                infos->code = strdup(concatener(4, codes[0]->code, "+", codes[1]->code, ";\n"));
+                        }else{
+                                char * tmp = codes[1]->code;
+                                infos->code = concatener(4, tmp, codes[0]->code, "+", codes[1]->val);
+                        }
+                        infos->val = strdup("_t");
+                        return infos;
+                } else if (strcmp(a->name, "-") == 0){ // Il faut aussi verifier s'il s'agit d'une opération unaire
+                       code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        infos->code = strdup(concatener(5, "_t=", codes[0]->code, "-", codes[1]->code, ";\n"));
+                        infos->val = strdup("_t");
+                        return infos;
                 } else if (strcmp(a->name, "*") == 0){ // Il faut aussi vérifier s'il s'agit d'un pointeur
-                        
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        infos->code = strdup(concatener(5, "_t=", codes[0]->code, "*", codes[1]->code, ";\n"));
+                        infos->val = strdup("_t");
+                        return infos;
                 } else if (strcmp(a->name, "/") == 0){
-                        
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        infos->code = strdup(concatener(5, "_t=", codes[0]->code, "/", codes[1]->code, ";\n"));
+                        infos->val = strdup("_t");
+                        return infos;
                 } else if (strcmp(a->name, ">") == 0){
-                        
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        infos->code = strdup(concatener(5, "_t=", codes[0]->code, ">", codes[1]->code, ";\n"));
+                        infos->val = strdup("_t");
+                        return infos;
                 } else if (strcmp(a->name, "<") == 0){
-                        
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        infos->code = strdup(concatener(5, "_t=", codes[0]->code, "<", codes[1]->code, ";\n"));
+                        infos->val = strdup("_t");
+                        return infos;
                 } else if (strcmp(a->name, ">=") == 0){
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        infos->code = strdup(concatener(5, "_t=", codes[0]->code, ">=", codes[1]->code, ";\n"));
+                        infos->val = strdup("_t");
+                        return infos;
                         
                 } else if (strcmp(a->name, "<=") == 0){
-                        
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        infos->code = strdup(concatener(5, "_t=", codes[0]->code, "<=", codes[1]->code, ";\n"));
+                        infos->val = strdup("_t");
+                        return infos;
                 } else if (strcmp(a->name, "==") == 0){
-                        
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        infos->code = strdup(concatener(5, "_t=", codes[0]->code, "==", codes[1]->code, ";\n"));
+                        infos->val = strdup("_t");
+                        return infos;
                 } else if (strcmp(a->name, "!=") == 0){
-                        
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        infos->code = strdup(concatener(5, "_t=", codes[0]->code, "!=", codes[1]->code, ";\n"));
+                        infos->val = strdup("_t");
+                        return infos;
                 } else if (strcmp(a->name, "&&") == 0){
-                        
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        infos->code = strdup(concatener(5, "_t=", codes[0]->code, "&&", codes[1]->code, ";\n"));
+                        infos->val = strdup("_t");
+                        return infos;
                 } else if (strcmp(a->name, "||") == 0){
-                        
-                } else if (strcmp(a->name, "&") == 0){
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        infos->code = strdup(concatener(5, "_t=", codes[0]->code, "||", codes[1]->code, ";\n"));
+                        infos->val = strdup("_t");
+                        return infos;
+                } /* else if (strcmp(a->name, "&") == 0){
                         
                 } else if (strcmp(a->name, "->") == 0){
                         
                 } else if (strcmp(a->name, ".") == 0){
 
                 }*/ else if (strcmp(a->name, "RETURN") == 0){
-                        return concatener(2, codes[0]);
+                        code_info * infos = malloc(sizeof(code_info));
+                        assert(infos != NULL);
+                        
+                        if (infos->val == NULL){
+                                infos->code = strdup(concatener(3, "return", codes[0]->code, ";\n"));
+                        } else {
+                                char * tmp = codes[1]->code;
+                                infos->code = concatener(4, tmp, codes[0]->code, "return", codes[1]->val);
+                        }
+                        return infos;
+                } else if (strcmp (a->name, "main") == 0){ 
+                        int i = 0;
+                        if(length_children == 0)
+                                return codes[0];
+
+                        while(i < length_children - 1){
+                                if(length_children == 1)
+                                        break;
+                                strcat(codes[0]->code, codes[i+1]->code);
+                                i++;
+                        }
+                        return codes[0];
                 } else { // Soit le cas n'est pas implémenté, soit il s'agit d'une variable ou une constante
-                        if(a->name != NULL)
-                                return a->name;
+                        if(a->name != NULL){
+                                  code_info * infos = malloc(sizeof(code_info));
+                                  assert(infos != NULL);
+                                  infos->code = a->name;
+                                return infos;
+                        }
+                                
                         printf("ERREUR: il y a un pb d'implémentation ... \n");
                         exit(1);
                 }
